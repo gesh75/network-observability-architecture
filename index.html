@@ -742,7 +742,6 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
     document.querySelectorAll("[data-health]").forEach(el => {
       el.className = "dot "+health(el.getAttribute("data-health"));
     });
-    const s = summary();
     const live = document.querySelector("[data-kpi=live]");
     const crit = document.querySelector("[data-kpi=crit]");
     const pct = document.querySelector("[data-kpi=pct]");
@@ -771,7 +770,6 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
       const to = t.getAttribute("data-nav");
       if(t.hasAttribute("data-stage")) state.stage = t.getAttribute("data-stage");
       document.getElementById("chrome").classList.remove("open");
-      if(t.tagName==="A") return;
       e.preventDefault();
       go(to);
       return;
