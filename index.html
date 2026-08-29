@@ -210,7 +210,7 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
   const ROADMAP = [
     ["1.0","2026-07-29","shipped","Reference page published","Single-file GitHub Pages site. Five-stage pipeline, three rules, four design decisions. Zero dependencies, no proprietary detail."],
     ["1.1","2026-08-22","shipped","Last static-only push","Docs site live. Repo remained HTML + architecture.png + README + MIT."],
-    ["2.0","2026-08-29","now","Architecture console","This page. Interactive estate, freshness, drift, dual-signal lab, read-only AI control plane. Pattern upgraded: OTLP/Alloy, Tempo, gNMI, flow, adaptive telemetry, SLO burn, GitOps ownership."],
+    ["2.0","2026-08-29","shipped","Architecture console","Shipped. Interactive estate, freshness, drift, dual-signal lab, read-only AI control plane. Pattern upgraded: OTLP/Alloy, Tempo, gNMI, flow, adaptive telemetry, SLO burn, GitOps ownership."],
     ["2.1","2026-Q4","next","Alloy + Grafana as code kit","Versioned Alloy pipelines, Grafana dashboard JSON, alert rules, and freshness recording rules — cloneable, no vendor lock. Mimir as the metrics scale path beside InfluxDB."],
     ["2.2","2027-Q1","planned","gNMI + flow first-class","gnmic subscriptions with freshness tags, IPFIX/sFlow distilled at the edge, WAN synthetics feeding the same dual-signal gate."],
     ["3.0","2027","planned","What-if against intent","Batfish (or equivalent) scored against NetBox before a plan is even offered for approval. Closed loop stays human-gated; Aegis-style pre-deploy validation is the sibling, not a merge."]
@@ -418,8 +418,8 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
       <p class="lede">Vendor telemetry into an open-source stack. A source of truth that states what should exist. Drift measured against it. Automation that stays read-only until a human approves the change.</p>
       <div class="row">
         <span class="chip ok">Pages live</span>
-        <span class="chip">v1 published 2026-07-29</span>
-        <span class="chip">console 2026-08-29</span>
+        <span class="chip ok">v2.0 shipped</span>
+        <span class="chip">2026-08-29</span>
         <span class="chip now">interactive</span>
       </div>
       <div class="row">
@@ -676,7 +676,7 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
     return `
       <div class="eyebrow">Status</div>
       <h1>Where the project actually is</h1>
-      <p class="lede">The public docs site was a single HTML file. This console is v2 of the pattern — same rules, a 2026 stack, and the interactions the static page could not demonstrate.</p>
+      <p class="lede">v2.0 shipped. Same rules, a 2026 stack, and the interactions the static page could not demonstrate. v2.1 is the as-code kit.</p>
       <div class="cols4" style="margin-top:22px">
         ${[["Repo","network-observability-architecture"],["Version","2.0"],["Created","2026-07-29"],["License","MIT"]].map(x=>`<div class="card"><div class="k">${x[0]}</div><div style="margin-top:6px;font-weight:650;font-size:15px">${x[1]}</div></div>`).join("")}
       </div>
