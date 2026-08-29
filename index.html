@@ -2,10 +2,10 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Network Observability &amp; Source of Truth — Reference Architecture</title>
+<title>Network Observability & Source of Truth — Reference Architecture</title>
 <meta name="description" content="A vendor-neutral reference architecture for network observability and source-of-truth: multi-vendor telemetry into an open-source stack, drift detection against intent, and automation that stays read-only until a human approves the change.">
-<meta property="og:title" content="Network Observability &amp; Source of Truth — Reference Architecture">
-<meta property="og:description" content="Multi-vendor estate · open-source stack · human-gated automation.">
+<meta property="og:title" content="Network Observability & Source of Truth — Reference Architecture">
+<meta property="og:description" content="v2.0 — OTLP, NetBox, dual-signal alerts, human-gated automation.">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Georgi Gaydarov">
 <meta property="og:url" content="https://gesh75.github.io/network-observability-architecture/">
@@ -13,24 +13,23 @@
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="2000">
 <meta property="og:image:height" content="1400">
-<meta property="og:image:alt" content="Reference architecture: sources, collect, store, visualize, act — with intent-vs-actual drift detection, read-only-until-proven automation, and a human-gated AI control plane.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Network Observability &amp; Source of Truth — Reference Architecture">
-<meta name="twitter:description" content="Multi-vendor estate · open-source stack · human-gated automation.">
+<meta name="twitter:title" content="Network Observability & Source of Truth — Reference Architecture">
+<meta name="twitter:description" content="v2.0 — multi-vendor estate · open-source stack · human-gated automation.">
 <meta name="twitter:image" content="https://gesh75.github.io/network-observability-architecture/architecture.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --bg:#0a0e15; --panel:#151d29; --panel2:#111823; --line:#2c3949;
   --tx:#f2f6fb; --mut:#9fb0c4; --dim:#6f8093;
-  --blue:#58a6ff; --pur:#a371f7; --grn:#3fb950; --amb:#e3b341; --cor:#f7826b;
+  --blue:#58a6ff; --grn:#3fb950; --amb:#e3b341; --cor:#f7826b; --cyan:#7dd3fc;
   --max:1400px;
 }
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
   background:
     radial-gradient(1100px 700px at 12% -8%, rgba(88,166,255,.13), transparent 62%),
-    radial-gradient(950px 600px at 92% 2%, rgba(163,113,247,.10), transparent 62%),
+    radial-gradient(950px 600px at 92% 2%, rgba(125,211,252,.08), transparent 62%),
     var(--bg);
   background-attachment:fixed;
   color:var(--tx);
@@ -40,8 +39,6 @@ body{
 }
 .wrap{max-width:var(--max);margin:0 auto;padding:0 clamp(20px,4vw,48px)}
 section{padding:clamp(48px,7vw,86px) 0}
-
-/* ---------- hero ---------- */
 .hero{padding-top:clamp(56px,9vw,110px);padding-bottom:clamp(40px,6vw,72px)}
 .eyebrow{font-size:clamp(12px,1.3vw,14px);font-weight:800;letter-spacing:.26em;
   color:var(--blue);text-transform:uppercase;margin-bottom:clamp(16px,2vw,22px)}
@@ -55,20 +52,15 @@ h1{font-size:clamp(34px,6.2vw,76px);font-weight:700;letter-spacing:-.028em;line-
 .byline a{color:var(--blue);text-decoration:none;font-size:clamp(14px,1.6vw,17px);
   border-bottom:1px solid rgba(88,166,255,.35);padding-bottom:1px}
 .byline a:hover{border-bottom-color:var(--blue)}
-
-/* ---------- section heads ---------- */
 .shead{font-size:clamp(12px,1.3vw,14px);font-weight:800;letter-spacing:.24em;
   text-transform:uppercase;color:var(--dim);margin-bottom:clamp(14px,1.8vw,18px)}
 h2{font-size:clamp(26px,3.8vw,44px);font-weight:700;letter-spacing:-.024em;line-height:1.1}
 .sintro{margin-top:14px;font-size:clamp(15px,1.8vw,19px);color:var(--mut);max-width:66ch}
-
-/* ---------- pipeline ---------- */
 .pipe{margin-top:clamp(30px,4vw,48px);display:grid;gap:clamp(14px,1.6vw,20px);
   grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
 .stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;
   border-top:6px solid var(--line);padding:clamp(22px,2.6vw,30px);
-  display:flex;flex-direction:column;transition:transform .18s ease,border-color .18s ease}
-.stage:hover{transform:translateY(-3px)}
+  display:flex;flex-direction:column}
 .stage .step{font-size:12px;font-weight:800;letter-spacing:.2em;color:var(--dim);margin-bottom:12px}
 .stage .n{font-size:clamp(21px,2.5vw,28px);font-weight:700;letter-spacing:-.018em;line-height:1.1}
 .stage .d{margin-top:12px;font-size:clamp(14px,1.6vw,17px);color:var(--mut);letter-spacing:-.004em}
@@ -76,8 +68,7 @@ h2{font-size:clamp(26px,3.8vw,44px);font-weight:700;letter-spacing:-.024em;line-
 .stage li{font-size:clamp(13px,1.5vw,15px);color:var(--dim);padding:4px 0 4px 15px;position:relative}
 .stage li::before{content:"";position:absolute;left:0;top:12px;width:5px;height:5px;
   border-radius:50%;background:currentColor;opacity:.6}
-
-/* ---------- principles ---------- */
+.stage li.v2{color:var(--blue)}
 .prin{margin-top:clamp(30px,4vw,48px);display:grid;gap:clamp(16px,2vw,24px);
   grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
 .p{background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);
@@ -87,31 +78,39 @@ h2{font-size:clamp(26px,3.8vw,44px);font-weight:700;letter-spacing:-.024em;line-
 .p .h{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;margin-bottom:14px}
 .p .t{font-size:clamp(21px,2.5vw,29px);font-weight:700;letter-spacing:-.02em;line-height:1.12}
 .p .d{margin-top:14px;font-size:clamp(14px,1.7vw,18px);color:var(--mut)}
-
-/* ---------- detail ---------- */
 .detail{margin-top:clamp(28px,3.6vw,44px);display:grid;gap:clamp(16px,2vw,22px);
   grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
 .d-card{background:var(--panel2);border:1px solid var(--line);border-radius:16px;
   padding:clamp(22px,2.6vw,30px)}
 .d-card h3{font-size:clamp(17px,2vw,21px);font-weight:650;letter-spacing:-.014em;margin-bottom:12px}
 .d-card p{font-size:clamp(14px,1.6vw,16.5px);color:var(--mut)}
-
-/* ---------- footer ---------- */
+.status{margin-top:clamp(28px,4vw,44px);display:grid;gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.stat .k{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.stat .v{margin-top:6px;font-size:16px;font-weight:650}
+.road{margin-top:clamp(28px,4vw,44px);display:flex;flex-direction:column;gap:14px}
+.rv{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+.rv .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
+.pill{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--mut)}
+.pill.now{border-color:rgba(88,166,255,.45);color:var(--blue)}
+.pill.ok{border-color:rgba(63,185,80,.45);color:var(--grn)}
 footer{border-top:1px solid var(--line);padding:clamp(30px,4vw,44px) 0 clamp(44px,6vw,64px);
   display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center}
 .note{font-size:clamp(13px,1.5vw,15px);color:var(--dim);max-width:52ch}
 .tags{display:flex;flex-wrap:wrap;gap:8px}
 .tag{border:1px solid var(--line);border-radius:999px;padding:6px 15px;
   font-size:clamp(12px,1.4vw,14px);color:var(--mut)}
+.suite a{color:var(--blue);text-decoration:none}
+.suite a:hover{border-bottom:1px solid var(--blue)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
 </style></head>
 <body>
-
 <div class="wrap">
 
   <header class="hero">
-    <div class="eyebrow">Reference Architecture</div>
-    <h1>Network Observability<br>&amp; Source of Truth</h1>
+    <div class="eyebrow">Reference Architecture · v2.0</div>
+    <h1>Network Observability<br>& Source of Truth</h1>
     <p class="lede">How I build visibility into a large multi-vendor network estate: vendor telemetry into an
       open-source stack, a source of truth that states what <em>should</em> exist, drift measured against it,
       and automation that stays read-only until a human approves the change.</p>
@@ -119,64 +118,86 @@ footer{border-top:1px solid var(--line);padding:clamp(30px,4vw,44px) 0 clamp(44p
       <span class="n">Georgi Gaydarov</span>
       <span class="r">Network Engineering Leadership</span>
       <a href="https://www.linkedin.com/in/georgi-gaydarov/" rel="noopener">LinkedIn</a>
-      <a href="https://github.com/gesh75" rel="noopener">GitHub</a>
+      <a href="https://github.com/gesh75/network-observability-architecture" rel="noopener">GitHub</a>
+    </div>
+    <div class="status">
+      <div class="stat"><div class="k">Status</div><div class="v">Pages live · v2.0</div></div>
+      <div class="stat"><div class="k">Published</div><div class="v">2026-07-29</div></div>
+      <div class="stat"><div class="k">This revision</div><div class="v">2026-08-29</div></div>
+      <div class="stat"><div class="k">License</div><div class="v">MIT</div></div>
     </div>
   </header>
 
   <section>
     <div class="shead">The pipeline</div>
     <h2>From vendor APIs to an on-call alert</h2>
-    <p class="sintro">Five stages. Every one of them read-only by default, scheduled on the host, and
-      monitored for its own freshness — a dead feed raises an alert rather than going quiet.</p>
+    <p class="sintro">Five stages. Every one of them read-only by default, scheduled on organization-owned hosts, and
+      monitored for its own freshness — a dead feed raises an alert rather than going quiet. v2 keeps the shape and
+      upgrades the fabric: OTLP, Alloy, Tempo, gNMI, flow, adaptive sampling.</p>
 
     <div class="pipe">
       <div class="stage" style="border-top-color:var(--blue);color:var(--blue)">
         <div class="step">01</div>
         <div class="n" style="color:var(--tx)">Sources</div>
-        <div class="d">Every layer of the estate, pulled from the vendor's own API or its native syslog.</div>
+        <div class="d">Every layer of the estate, pulled from the vendor's own API, native syslog, gNMI, or exported flow. No agent on a production device.</div>
         <ul>
-          <li>SD-WAN fabric</li><li>Branch LAN &amp; wireless</li><li>Firewall estate</li>
-          <li>RMM &amp; endpoint</li><li>Security telemetry</li><li>Public cloud networking</li>
+          <li>SD-WAN fabric</li><li>Branch LAN & wireless</li><li>Firewall estate</li>
+          <li>RMM & endpoint</li><li>Security telemetry</li><li>Public cloud networking</li>
+          <li class="v2">gNMI / OpenConfig streaming</li>
+          <li class="v2">IPFIX / sFlow / NetFlow</li>
+          <li class="v2">WAN synthetic probes</li>
         </ul>
       </div>
 
-      <div class="stage" style="border-top-color:var(--pur);color:var(--pur)">
+      <div class="stage" style="border-top-color:var(--cyan);color:var(--cyan)">
         <div class="step">02</div>
         <div class="n" style="color:var(--tx)">Collect</div>
-        <div class="d">One collector per vendor. Rate-limit aware, restart-safe, heartbeat-monitored.</div>
+        <div class="d">One collector per vendor. Rate-limit aware, restart-safe, heartbeat-monitored. Alloy speaks OTLP; Vector still owns syslog.</div>
         <ul>
           <li>Scheduled API collectors</li><li>rsyslog → Vector pipeline</li>
           <li>Parsed and labeled at the edge</li><li>No agent on any production device</li>
+          <li class="v2">Grafana Alloy (OTLP)</li>
+          <li class="v2">Heartbeat + freshness SLO</li>
+          <li class="v2">Adaptive telemetry / sampling</li>
         </ul>
       </div>
 
       <div class="stage" style="border-top-color:var(--grn);color:var(--grn)">
         <div class="step">03</div>
         <div class="n" style="color:var(--tx)">Store</div>
-        <div class="d">Three stores, three questions: what should exist, how is it performing, what just happened.</div>
+        <div class="d">Four stores, four questions: what should exist, how is it performing, what just happened, how did the job run.</div>
         <ul>
           <li>NetBox — intent, IPAM, circuits</li><li>InfluxDB — metrics, tiered retention</li>
           <li>Loki — estate-wide logs</li>
+          <li class="v2">Tempo — traces of jobs & hops</li>
+          <li class="v2">Mimir — OTLP metrics scale path</li>
+          <li class="v2">Git — config backups, dashboards</li>
         </ul>
       </div>
 
       <div class="stage" style="border-top-color:var(--amb);color:var(--amb)">
         <div class="step">04</div>
         <div class="n" style="color:var(--tx)">Visualize</div>
-        <div class="d">Dashboards and alert rules provisioned as code and versioned in git — not clicked together in a UI.</div>
+        <div class="d">Dashboards and alert rules provisioned as code and versioned in git — not clicked together in a UI. Every panel has a named owner and an SLO.</div>
         <ul>
           <li>Grafana, provisioned from source</li><li>Fleet, WAN, capacity and SLA views</li>
           <li>Every panel has a named owner</li>
+          <li class="v2">NetBox-enriched topology</li>
+          <li class="v2">SLO burn-rate views</li>
+          <li class="v2">Collector freshness heatmap</li>
         </ul>
       </div>
 
       <div class="stage" style="border-top-color:var(--cor);color:var(--cor)">
         <div class="step">05</div>
         <div class="n" style="color:var(--tx)">Act</div>
-        <div class="d">Raw webhooks rendered into readable cards, each tied to a written runbook.</div>
+        <div class="d">Raw webhooks rendered into readable cards, each tied to a written runbook. AI reads everything and writes nothing.</div>
         <ul>
           <li>Chat alerts with runbook links</li><li>On-call escalation ladder</li>
-          <li>Carrier &amp; WAN SLA for leadership</li>
+          <li>Carrier & WAN SLA for leadership</li>
+          <li class="v2">Dual-signal correlation gate</li>
+          <li class="v2">AI control plane (read-only)</li>
+          <li class="v2">Human-approved change plans</li>
         </ul>
       </div>
     </div>
@@ -193,7 +214,7 @@ footer{border-top:1px solid var(--line);padding:clamp(30px,4vw,44px) 0 clamp(44p
         <div class="h" style="color:var(--grn)">Discipline</div>
         <div class="t">Intent versus actual</div>
         <p class="d">The source of truth holds intended state. Collectors report what devices actually run.
-          The gap between them is measured and reported — drift is detected, never assumed.</p>
+          The gap between them is measured and reported — drift is detected, never assumed. Discovery never writes NetBox.</p>
       </div>
       <div class="p"><span class="bar" style="background:var(--amb)"></span>
         <div class="h" style="color:var(--amb)">Automation</div>
@@ -201,11 +222,11 @@ footer{border-top:1px solid var(--line);padding:clamp(30px,4vw,44px) 0 clamp(44p
         <p class="d">Scheduled jobs back configuration up to git and score every device against a hardening
           baseline. Anything that writes runs in check-mode first, canary before fleet, with a recorded rollback.</p>
       </div>
-      <div class="p"><span class="bar" style="background:var(--pur)"></span>
-        <div class="h" style="color:var(--pur)">AI control plane</div>
+      <div class="p"><span class="bar" style="background:var(--blue)"></span>
+        <div class="h" style="color:var(--blue)">AI control plane</div>
         <div class="t">Read anything, change nothing</div>
         <p class="d">A single agent reads every system in the stack and answers in plain English. It cannot
-          change anything — writes execute only inside a human-approved plan, fully audit-logged.</p>
+          change anything — writes execute only inside a human-approved plan, fully audit-logged. Stale feeds are disclosed, never hidden.</p>
       </div>
     </div>
   </section>
@@ -236,16 +257,58 @@ footer{border-top:1px solid var(--line);padding:clamp(30px,4vw,44px) 0 clamp(44p
           escalation ladder and a documented restore path. If it only works while one person is present,
           it is a liability, not a platform.</p>
       </div>
+      <div class="d-card">
+        <h3>OTLP is the interchange, not a vendor</h3>
+        <p>OpenTelemetry Protocol is how signals move in 2026. Alloy is a distribution, not a lock-in. Vendor APIs still get collected — they get normalized to OTLP at the edge.</p>
+      </div>
+      <div class="d-card">
+        <h3>No agent on production network devices</h3>
+        <p>Collectors live on organization-owned hosts. Devices keep exporting what they already export: API, syslog, gNMI, IPFIX. A third-party agent on a core router is an availability problem disguised as convenience.</p>
+      </div>
+      <div class="d-card">
+        <h3>Traces are for the pipeline, not the packets</h3>
+        <p>Tempo does not replace NetFlow. It traces collector runs and approved change plans so a write has a beginning, a middle, and a verdict. Packet-level truth stays in flow and syslog.</p>
+      </div>
+      <div class="d-card">
+        <h3>Cost scales with insight</h3>
+        <p>Adaptive sampling at the collector — not a warehouse that keeps every counter forever — is how an open-source stack survives a large estate. Freshness SLOs protect the signal; retention tiers protect the bill.</p>
+      </div>
     </div>
+  </section>
+
+  <section>
+    <div class="shead">Roadmap</div>
+    <h2>Where the project actually is</h2>
+    <p class="sintro">v1 was a single HTML file. v2 is the same pattern with a 2026 stack, a public revision of the docs, and an interactive console that demonstrates freshness, drift, dual-signal, and the read-only control plane.</p>
+    <div class="road">
+      <div class="rv"><div class="meta"><strong>v1.0</strong><span class="pill ok">shipped</span><span class="pill">2026-07-29</span></div><p class="d" style="color:var(--mut);margin:0">Reference page published. Five-stage pipeline, three rules, four design decisions. Zero dependencies.</p></div>
+      <div class="rv"><div class="meta"><strong>v1.1</strong><span class="pill ok">shipped</span><span class="pill">2026-08-22</span></div><p style="color:var(--mut);margin:0">Last static-only push. Repo remained HTML + architecture.png + README + MIT.</p></div>
+      <div class="rv"><div class="meta"><strong>v2.0</strong><span class="pill now">now</span><span class="pill">2026-08-29</span></div><p style="color:var(--mut);margin:0">This revision. OTLP/Alloy, Tempo, gNMI, flow, adaptive telemetry, SLO ownership, GitOps. Interactive console for estate, freshness, drift, dual-signal, and the AI control plane.</p></div>
+      <div class="rv"><div class="meta"><strong>v2.1</strong><span class="pill">next</span><span class="pill">2026-Q4</span></div><p style="color:var(--mut);margin:0">Alloy + Grafana as-code kit. Versioned pipelines, dashboard JSON, alert rules, freshness recording rules. Mimir as the metrics scale path beside InfluxDB.</p></div>
+      <div class="rv"><div class="meta"><strong>v2.2</strong><span class="pill">planned</span><span class="pill">2027-Q1</span></div><p style="color:var(--mut);margin:0">gNMI and flow first-class. gnmic subscriptions with freshness tags, IPFIX/sFlow distilled at the edge, WAN synthetics on the same dual-signal gate.</p></div>
+      <div class="rv"><div class="meta"><strong>v3.0</strong><span class="pill">planned</span><span class="pill">2027</span></div><p style="color:var(--mut);margin:0">What-if against intent. Batfish (or equivalent) scored against NetBox before a plan is offered. Closed loop stays human-gated; Aegis-style pre-deploy validation is the sibling, not a merge.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead">GESH suite</div>
+    <h2>Sibling projects</h2>
+    <p class="sintro suite">Observability does not live alone.
+      <a href="https://github.com/gesh75/netlog-ai">netlog-ai</a> turns syslog into RCA.
+      <a href="https://github.com/gesh75/aegis">aegis</a> validates before deploy.
+      <a href="https://github.com/gesh75/argus">argus</a> tests the perimeter.
+      <a href="https://github.com/gesh75/multivendor-ai-network-lab">multivendor-ai-network-lab</a> closes the loop.</p>
   </section>
 
   <footer>
     <p class="note">Generic reference pattern — no client, environment, or proprietary detail.
-      Tooling names are open-source projects, not an endorsement of any vendor.</p>
+      Tooling names are open-source projects, not an endorsement of any vendor. v2.0 · 2026-08-29.</p>
     <div class="tags">
       <span class="tag">NetBox</span><span class="tag">Grafana</span><span class="tag">InfluxDB</span>
-      <span class="tag">Loki</span><span class="tag">Vector</span><span class="tag">Ansible</span>
-      <span class="tag">Python</span><span class="tag">MCP</span>
+      <span class="tag">Loki</span><span class="tag">Tempo</span><span class="tag">Alloy</span>
+      <span class="tag">OpenTelemetry</span><span class="tag">Vector</span><span class="tag">gNMI</span>
+      <span class="tag">IPFIX</span><span class="tag">Ansible</span><span class="tag">Python</span>
+      <span class="tag">MCP</span>
     </div>
   </footer>
 
