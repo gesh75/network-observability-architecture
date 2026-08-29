@@ -5,7 +5,7 @@ Vendor-neutral reference architecture for network observability and source-of-tr
 **Contains no client, environment, or proprietary detail.** Tooling names are open-source
 projects. Safe to publish publicly.
 
-**Status:** v2.0 (2026-08-29) · Pages live · MIT
+**Status:** v2.0 (2026-08-29) · Pages live · MIT · interactive console
 
 ## What this is
 
@@ -20,7 +20,8 @@ How to build visibility into a large multi-vendor network estate:
 
 ## v2.0 (this revision)
 
-Same five-stage pipeline and three rules. The fabric is current:
+Same five-stage pipeline and three rules. The fabric is current, and the public
+page is now an **interactive console** (still a single HTML file, zero dependencies).
 
 | Stage | v1 | v2 add |
 | --- | --- | --- |
@@ -30,17 +31,24 @@ Same five-stage pipeline and three rules. The fabric is current:
 | Visualize | Grafana as code | NetBox-enriched topology, SLO burn, freshness heatmap |
 | Act | Chat + runbooks | Dual-signal gate, read-only AI, human-approved change plans |
 
+What you can do on the live page:
+
+- **Estate** — kill a collector; silence is treated as a failure, not as good news
+- **Drift** — toggle the anti-pattern of writing discovery into NetBox
+- **Alerts** — both signals must agree before a page fires
+- **Control plane** — draft a check-mode plan; a human still approves it
+
 Collectors still do **not** run on production network devices.
 
 ## Live
 
-Docs: https://gesh75.github.io/network-observability-architecture/
+Console: https://gesh75.github.io/network-observability-architecture/
 
 Repo: https://github.com/gesh75/network-observability-architecture
 
 ## Files
 
-- `index.html` — self-contained reference page (zero dependencies)
+- `index.html` — self-contained architecture console (zero dependencies)
 - `architecture.png` — share card
 - `LICENSE` — MIT
 

@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Network Observability & Source of Truth — Reference Architecture</title>
-<meta name="description" content="A vendor-neutral reference architecture for network observability and source-of-truth: multi-vendor telemetry into an open-source stack, drift detection against intent, and automation that stays read-only until a human approves the change.">
-<meta property="og:title" content="Network Observability & Source of Truth — Reference Architecture">
-<meta property="og:description" content="v2.0 — OTLP, NetBox, dual-signal alerts, human-gated automation.">
+<title>Network Observability & Source of Truth — Architecture Console</title>
+<meta name="description" content="v2.0 interactive console: vendor telemetry into an open-source stack, NetBox as intent, drift measured against it, dual-signal alerts, and an AI control plane that reads anything and changes nothing.">
+<meta property="og:title" content="Network Observability & Source of Truth — Architecture Console">
+<meta property="og:description" content="v2.0 — OTLP, NetBox, dual-signal lab, human-gated automation.">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Georgi Gaydarov">
 <meta property="og:url" content="https://gesh75.github.io/network-observability-architecture/">
@@ -14,16 +15,18 @@
 <meta property="og:image:width" content="2000">
 <meta property="og:image:height" content="1400">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Network Observability & Source of Truth — Reference Architecture">
-<meta name="twitter:description" content="v2.0 — multi-vendor estate · open-source stack · human-gated automation.">
+<meta name="twitter:title" content="Network Observability & Source of Truth — Architecture Console">
+<meta name="twitter:description" content="v2.0 interactive console — multi-vendor estate · open-source stack · human-gated automation.">
 <meta name="twitter:image" content="https://gesh75.github.io/network-observability-architecture/architecture.png">
+<meta name="theme-color" content="#0a0e15">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111d2b'/%3E%3Cpath d='M16 6 L26 16 L16 26 L6 16 Z' fill='none' stroke='%2358a6ff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%2358a6ff'/%3E%3C/svg%3E">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --bg:#0a0e15; --panel:#151d29; --panel2:#111823; --line:#2c3949;
   --tx:#f2f6fb; --mut:#9fb0c4; --dim:#6f8093;
   --blue:#58a6ff; --grn:#3fb950; --amb:#e3b341; --cor:#f7826b; --cyan:#7dd3fc;
-  --max:1400px;
+  --max:1180px; --shadow:0 0 0 1px rgba(255,255,255,.08);
 }
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
@@ -36,281 +39,785 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","Helvetica Neue",Inter,Arial,sans-serif;
   -webkit-font-smoothing:antialiased;
   line-height:1.5;
+  min-height:100dvh;
 }
-.wrap{max-width:var(--max);margin:0 auto;padding:0 clamp(20px,4vw,48px)}
-section{padding:clamp(48px,7vw,86px) 0}
-.hero{padding-top:clamp(56px,9vw,110px);padding-bottom:clamp(40px,6vw,72px)}
-.eyebrow{font-size:clamp(12px,1.3vw,14px);font-weight:800;letter-spacing:.26em;
-  color:var(--blue);text-transform:uppercase;margin-bottom:clamp(16px,2vw,22px)}
-h1{font-size:clamp(34px,6.2vw,76px);font-weight:700;letter-spacing:-.028em;line-height:1.03}
-.lede{margin-top:clamp(18px,2.4vw,26px);font-size:clamp(17px,2.1vw,25px);
-  color:var(--mut);max-width:60ch;letter-spacing:-.01em}
-.byline{margin-top:clamp(26px,3.4vw,40px);padding-top:clamp(20px,2.6vw,28px);
-  border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:14px 26px;align-items:baseline}
-.byline .n{font-size:clamp(16px,1.9vw,21px);font-weight:650;letter-spacing:-.012em}
-.byline .r{font-size:clamp(14px,1.6vw,17px);color:var(--dim)}
-.byline a{color:var(--blue);text-decoration:none;font-size:clamp(14px,1.6vw,17px);
-  border-bottom:1px solid rgba(88,166,255,.35);padding-bottom:1px}
-.byline a:hover{border-bottom-color:var(--blue)}
-.shead{font-size:clamp(12px,1.3vw,14px);font-weight:800;letter-spacing:.24em;
-  text-transform:uppercase;color:var(--dim);margin-bottom:clamp(14px,1.8vw,18px)}
-h2{font-size:clamp(26px,3.8vw,44px);font-weight:700;letter-spacing:-.024em;line-height:1.1}
-.sintro{margin-top:14px;font-size:clamp(15px,1.8vw,19px);color:var(--mut);max-width:66ch}
-.pipe{margin-top:clamp(30px,4vw,48px);display:grid;gap:clamp(14px,1.6vw,20px);
-  grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
-.stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;
-  border-top:6px solid var(--line);padding:clamp(22px,2.6vw,30px);
-  display:flex;flex-direction:column}
-.stage .step{font-size:12px;font-weight:800;letter-spacing:.2em;color:var(--dim);margin-bottom:12px}
-.stage .n{font-size:clamp(21px,2.5vw,28px);font-weight:700;letter-spacing:-.018em;line-height:1.1}
-.stage .d{margin-top:12px;font-size:clamp(14px,1.6vw,17px);color:var(--mut);letter-spacing:-.004em}
-.stage ul{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);list-style:none}
-.stage li{font-size:clamp(13px,1.5vw,15px);color:var(--dim);padding:4px 0 4px 15px;position:relative}
-.stage li::before{content:"";position:absolute;left:0;top:12px;width:5px;height:5px;
-  border-radius:50%;background:currentColor;opacity:.6}
-.stage li.v2{color:var(--blue)}
-.prin{margin-top:clamp(30px,4vw,48px);display:grid;gap:clamp(16px,2vw,24px);
-  grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
-.p{background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);
-  border:1px solid var(--line);border-radius:18px;padding:clamp(24px,2.8vw,34px);
-  position:relative;overflow:hidden}
-.p .bar{position:absolute;inset:0 0 auto 0;height:5px}
-.p .h{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;margin-bottom:14px}
-.p .t{font-size:clamp(21px,2.5vw,29px);font-weight:700;letter-spacing:-.02em;line-height:1.12}
-.p .d{margin-top:14px;font-size:clamp(14px,1.7vw,18px);color:var(--mut)}
-.detail{margin-top:clamp(28px,3.6vw,44px);display:grid;gap:clamp(16px,2vw,22px);
-  grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
-.d-card{background:var(--panel2);border:1px solid var(--line);border-radius:16px;
-  padding:clamp(22px,2.6vw,30px)}
-.d-card h3{font-size:clamp(17px,2vw,21px);font-weight:650;letter-spacing:-.014em;margin-bottom:12px}
-.d-card p{font-size:clamp(14px,1.6vw,16.5px);color:var(--mut)}
-.status{margin-top:clamp(28px,4vw,44px);display:grid;gap:12px;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
-.stat .k{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
-.stat .v{margin-top:6px;font-size:16px;font-weight:650}
-.road{margin-top:clamp(28px,4vw,44px);display:flex;flex-direction:column;gap:14px}
-.rv{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
-.rv .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
-.pill{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--mut)}
-.pill.now{border-color:rgba(88,166,255,.45);color:var(--blue)}
-.pill.ok{border-color:rgba(63,185,80,.45);color:var(--grn)}
-footer{border-top:1px solid var(--line);padding:clamp(30px,4vw,44px) 0 clamp(44px,6vw,64px);
-  display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center}
-.note{font-size:clamp(13px,1.5vw,15px);color:var(--dim);max-width:52ch}
-.tags{display:flex;flex-wrap:wrap;gap:8px}
-.tag{border:1px solid var(--line);border-radius:999px;padding:6px 15px;
-  font-size:clamp(12px,1.4vw,14px);color:var(--mut)}
-.suite a{color:var(--blue);text-decoration:none}
-.suite a:hover{border-bottom:1px solid var(--blue)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
-</style></head>
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.skip{position:absolute;left:-999px;top:0}
+.skip:focus{left:1rem;top:1rem;z-index:60;background:var(--tx);color:var(--bg);padding:.5rem .75rem;border-radius:.5rem}
+.top{
+  position:sticky;top:0;z-index:40;
+  border-bottom:1px solid var(--line);
+  background:color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter:blur(12px);
+}
+.top-in{max-width:var(--max);margin:0 auto;padding:0 20px;height:58px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--tx);flex-shrink:0}
+.brand:hover{text-decoration:none}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--panel2);box-shadow:var(--shadow);display:grid;place-items:center}
+.brand small{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--blue);font-weight:700}
+.brand b{display:block;font-size:13px;font-weight:600;letter-spacing:-.01em}
+nav.pri{display:flex;gap:2px;margin-left:8px;flex-wrap:wrap}
+nav.pri a{
+  color:var(--mut);font-size:13px;padding:7px 10px;border-radius:8px;text-decoration:none
+}
+nav.pri a:hover{color:var(--tx)}
+nav.pri a.on{background:var(--panel);color:var(--tx);box-shadow:var(--shadow)}
+.feeds{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pill{border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;color:var(--mut);display:flex;align-items:center;gap:7px}
+.pill.v{border-color:rgba(88,166,255,.35);color:var(--blue);letter-spacing:.14em;text-transform:uppercase;font-weight:700;font-size:11px}
+.ham{display:none;margin-left:auto;background:transparent;border:0;color:var(--tx);width:40px;height:40px}
+.wrap{max-width:var(--max);margin:0 auto;padding:28px 20px 64px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.24em;color:var(--blue);text-transform:uppercase}
+h1{font-size:clamp(28px,4.6vw,52px);font-weight:700;letter-spacing:-.03em;line-height:1.08;margin-top:10px}
+h2{font-size:clamp(20px,2.6vw,28px);font-weight:650;letter-spacing:-.02em}
+.lede{margin-top:14px;font-size:clamp(15px,1.8vw,18px);color:var(--mut);max-width:62ch}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;
+  border-radius:10px;border:0;background:var(--blue);color:#071018;font-size:14px;font-weight:650
+}
+.btn.ghost{background:transparent;color:var(--tx);box-shadow:var(--shadow)}
+.btn.warn{background:transparent;color:var(--amb);box-shadow:0 0 0 1px rgba(227,179,65,.4)}
+.btn.danger{background:transparent;color:var(--cor);box-shadow:0 0 0 1px rgba(247,130,107,.45)}
+.btn.ok{background:var(--grn);color:#071018}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:28px}
+@media(min-width:900px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.card,.panel{background:var(--panel);box-shadow:var(--shadow);border-radius:16px;padding:18px 18px 16px}
+.k{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.v{margin-top:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:28px;font-weight:650;letter-spacing:-.03em}
+.hint{margin-top:4px;font-size:12px;color:var(--mut)}
+.ok{color:var(--grn)}.warn{color:var(--amb)}.crit{color:var(--cor)}.accent{color:var(--blue)}
+.grid2{display:grid;gap:12px;margin-top:16px}
+@media(min-width:900px){.grid2{grid-template-columns:1fr 1fr}.grid5{grid-template-columns:3fr 2fr}.cols5{grid-template-columns:repeat(5,1fr)}.cols4{grid-template-columns:repeat(4,1fr)}.cols3{grid-template-columns:repeat(3,1fr)}}
+.cols2,.cols3,.cols4,.cols5{display:grid;gap:10px}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--dim)}
+.dot.ok{background:var(--grn)}.dot.warn{background:var(--amb)}.dot.crit{background:var(--cor)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.muted{color:var(--mut)}.dim{color:var(--dim)}
+.chip{border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-size:11px;color:var(--mut)}
+.chip.ok{border-color:rgba(63,185,80,.4);color:var(--grn)}
+.chip.warn{border-color:rgba(227,179,65,.4);color:var(--amb)}
+.chip.crit{border-color:rgba(247,130,107,.45);color:var(--cor)}
+.chip.now{border-color:rgba(88,166,255,.45);color:var(--blue)}
+.list{list-style:none;display:grid;gap:8px}
+.cell{background:var(--panel2);border-radius:10px;padding:10px 12px}
+.stage-btn,.feed-btn{text-align:left;background:var(--panel);box-shadow:var(--shadow);border:0;border-radius:14px;padding:14px;color:var(--tx)}
+.stage-btn.on,.feed-btn.on{background:var(--panel2)}
+.stage-btn:hover,.feed-btn:hover{transform:translateY(-1px)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:650;padding:0 8px 8px 0}
+td{padding:10px 8px 10px 0;border-top:1px solid var(--line);vertical-align:top}
+.scroll{overflow-x:auto}
+.bar-row{display:grid;grid-template-columns:88px 1fr 36px;gap:8px;align-items:center;font-size:12px;margin:7px 0}
+.bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue);border-radius:99px}
+.ask{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.ask input{
+  flex:1;min-width:180px;height:42px;border-radius:10px;border:1px solid var(--line);
+  background:var(--bg);padding:0 12px
+}
+.ask input:focus{outline:2px solid color-mix(in srgb, var(--blue) 70%, transparent);outline-offset:1px}
+.msg{border-radius:12px;padding:10px 12px;margin:8px 0}
+.msg.op{background:var(--panel2);margin-left:28px}
+.msg.pl{box-shadow:var(--shadow);margin-right:16px}
+.starters{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.starters button{background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--mut);text-align:left}
+.starters button:hover{color:var(--tx)}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+.tag{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--mut)}
+footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
+.foot{max-width:var(--max);margin:0 auto;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;color:var(--dim);font-size:13px}
+.mob{display:none;border-top:1px solid var(--line);background:var(--bg);padding:10px 16px 16px}
+.mob a{display:block;padding:10px 8px;color:var(--mut);text-decoration:none;border-radius:8px}
+.mob a.on{background:var(--panel);color:var(--tx)}
+.top.open .mob{display:block}
+@media(max-width:880px){
+  nav.pri,.feeds .v{display:none}
+  .ham{display:grid;place-items:center}
+  .feeds{margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+</style>
+</head>
 <body>
-<div class="wrap">
-
-  <header class="hero">
-    <div class="eyebrow">Reference Architecture · v2.0</div>
-    <h1>Network Observability<br>& Source of Truth</h1>
-    <p class="lede">How I build visibility into a large multi-vendor network estate: vendor telemetry into an
-      open-source stack, a source of truth that states what <em>should</em> exist, drift measured against it,
-      and automation that stays read-only until a human approves the change.</p>
-    <div class="byline">
-      <span class="n">Georgi Gaydarov</span>
-      <span class="r">Network Engineering Leadership</span>
-      <a href="https://www.linkedin.com/in/georgi-gaydarov/" rel="noopener">LinkedIn</a>
-      <a href="https://github.com/gesh75/network-observability-architecture" rel="noopener">GitHub</a>
+<a class="skip" href="#view">Skip to content</a>
+<header class="top" id="chrome">
+  <div class="top-in">
+    <a class="brand" href="#/" data-nav="/">
+      <span class="mark" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3 L21 12 L12 21 L3 12 Z" stroke="#58a6ff" stroke-width="1.7"/><circle cx="12" cy="12" r="1.8" fill="#58a6ff"/></svg>
+      </span>
+      <span><small>GESH</small><b>Observability</b></span>
+    </a>
+    <nav class="pri" id="nav" aria-label="Primary"></nav>
+    <div class="feeds">
+      <span class="pill"><span class="dot" id="feed-dot"></span><span class="mono" id="feed-count">—</span></span>
+      <span class="pill v">v2.0</span>
     </div>
-    <div class="status">
-      <div class="stat"><div class="k">Status</div><div class="v">Pages live · v2.0</div></div>
-      <div class="stat"><div class="k">Published</div><div class="v">2026-07-29</div></div>
-      <div class="stat"><div class="k">This revision</div><div class="v">2026-08-29</div></div>
-      <div class="stat"><div class="k">License</div><div class="v">MIT</div></div>
+    <button class="ham" type="button" id="ham" aria-label="Open menu">☰</button>
+  </div>
+  <nav class="mob" id="mob" aria-label="Mobile"></nav>
+</header>
+<div class="wrap" id="view"></div>
+<footer class="site">
+  <div class="foot">
+    <p>Generic reference pattern — no client, environment, or proprietary detail. Tooling names are open-source projects, not an endorsement of any vendor. v2.0 · 2026-08-29.</p>
+    <div class="row" style="margin:0">
+      <a href="https://github.com/gesh75/network-observability-architecture">GitHub</a>
+      <a href="https://www.linkedin.com/in/georgi-gaydarov/">LinkedIn</a>
+      <a href="https://gesh75.github.io/">GESH Lab</a>
     </div>
-  </header>
+  </div>
+</footer>
+<script>
+(function () {
+  const NAV = [
+    ["/", "Command"],
+    ["/pipeline", "Pipeline"],
+    ["/estate", "Estate"],
+    ["/drift", "Drift"],
+    ["/alerts", "Alerts"],
+    ["/control-plane", "Control plane"],
+    ["/roadmap", "Roadmap"]
+  ];
+  const STAGES = [
+    {id:"sources", step:"01", name:"Sources", v1:"Every layer of the estate, pulled from the vendor's own API or its native syslog.", v2:"Same estate layers, now with gNMI streaming, IPFIX/sFlow export, and synthetic probes — still no agent on a production device.", items:[["SD-WAN fabric APIs",0],["Branch LAN & wireless",0],["Firewall estate",0],["RMM & endpoint",0],["Security telemetry / syslog",0],["Public cloud networking",0],["gNMI / OpenConfig streaming",1],["IPFIX / sFlow / NetFlow",1],["WAN synthetic probes",1]]},
+    {id:"collect", step:"02", name:"Collect", v1:"One collector per vendor. Rate-limit aware, restart-safe, heartbeat-monitored.", v2:"Grafana Alloy as the OpenTelemetry collector distribution, Vector for syslog, scheduled API collectors beside them. Adaptive sampling at the edge so cost scales with insight, not volume.", items:[["Scheduled API collectors",0],["rsyslog → Vector pipeline",0],["Parsed and labeled at the edge",0],["No agent on any production device",0],["Grafana Alloy (OTLP)",1],["Heartbeat + freshness SLO",1],["Adaptive telemetry / sampling",1],["Restart-safe, rate-limit aware",0]]},
+    {id:"store", step:"03", name:"Store", v1:"Three stores, three questions: what should exist, how is it performing, what just happened.", v2:"Four stores, four questions. Tempo holds traces of collector hops and change jobs so a write is never a mystery. InfluxDB remains the metrics workhorse; Mimir is the scale path.", items:[["NetBox — intent, IPAM, circuits",0],["InfluxDB — metrics, tiered retention",0],["Loki — estate-wide logs",0],["Tempo — traces of jobs & hops",1],["Mimir — OTLP metrics scale path",1],["Git — config backups, dashboards",1]]},
+    {id:"visualize", step:"04", name:"Visualize", v1:"Dashboards and alert rules provisioned as code and versioned in git — not clicked together in a UI.", v2:"Grafana still. Now every panel carries a named owner, an SLO, and labels joined from NetBox so a red graph always knows which circuit, site, and runbook it belongs to.", items:[["Grafana, provisioned from source",0],["Fleet, WAN, capacity and SLA views",0],["Every panel has a named owner",0],["NetBox-enriched topology",1],["SLO burn-rate views",1],["Collector freshness heatmap",1]]},
+    {id:"act", step:"05", name:"Act", v1:"Raw webhooks rendered into readable cards, each tied to a written runbook.", v2:"Dual-signal gate stays. AI reads everything and writes nothing. A human-approved plan is the only path to change — check-mode, canary, recorded rollback, append-only audit.", items:[["Chat alerts with runbook links",0],["On-call escalation ladder",0],["Carrier & WAN SLA for leadership",0],["Dual-signal correlation gate",1],["AI control plane (read-only)",1],["Human-approved change plans",1]]}
+  ];
+  const PRINCIPLES = [
+    ["Discipline","Intent versus actual","The source of truth holds intended state. Collectors report what devices actually run. The gap between them is measured and reported — drift is detected, never assumed. Discovery never writes NetBox."],
+    ["Automation","Read-only until proven","Scheduled jobs back configuration up to git and score every device against a hardening baseline. Anything that writes runs in check-mode first, canary before fleet, with a recorded rollback."],
+    ["AI control plane","Read anything, change nothing","A single agent reads every system in the stack and answers in plain English. It cannot change anything — writes execute only inside a human-approved plan, fully audit-logged. Stale feeds are disclosed, never hidden."]
+  ];
+  const DECISIONS = [
+    ["Alerts that survive contact with humans","An alert fires only when two independent signals agree. False positives die before they reach anyone. A channel people mute is worse than no alerting at all."],
+    ["Collectors that admit when they die","Every feed reports its own freshness on a cadence. Silence is treated as a failure state, not as good news — the most dangerous dashboard is one that is quietly three weeks stale."],
+    ["Source of truth is not discovery","NetBox records what the network is supposed to be. Discovery reports what it is. Conflating the two produces a database that documents your mistakes instead of your intent."],
+    ["Built to be handed over","Everything runs on organization-owned infrastructure under version control, with runbooks, an escalation ladder and a documented restore path. If it only works while one person is present, it is a liability, not a platform."],
+    ["OTLP is the interchange, not a vendor","2026 settled the argument. OpenTelemetry Protocol is how signals move. Alloy is a distribution, not a lock-in. Vendor APIs still get collected — they get normalized to OTLP at the edge."],
+    ["No agent on production network devices","Collectors live on organization-owned hosts. Devices keep exporting what they already export: API, syslog, gNMI, IPFIX. A third-party agent on a core router is an availability problem disguised as convenience."],
+    ["Traces are for the pipeline, not the packets","Tempo does not replace NetFlow. It traces collector runs and approved change plans so a write has a beginning, a middle, and a verdict. Packet-level truth stays in flow and syslog."],
+    ["Cost scales with insight","Adaptive sampling at the collector — not a warehouse that keeps every counter forever — is how an open-source stack survives a large estate. Freshness SLOs protect the signal; retention tiers protect the bill."]
+  ];
+  const ROADMAP = [
+    ["1.0","2026-07-29","shipped","Reference page published","Single-file GitHub Pages site. Five-stage pipeline, three rules, four design decisions. Zero dependencies, no proprietary detail."],
+    ["1.1","2026-08-22","shipped","Last static-only push","Docs site live. Repo remained HTML + architecture.png + README + MIT."],
+    ["2.0","2026-08-29","now","Architecture console","This page. Interactive estate, freshness, drift, dual-signal lab, read-only AI control plane. Pattern upgraded: OTLP/Alloy, Tempo, gNMI, flow, adaptive telemetry, SLO burn, GitOps ownership."],
+    ["2.1","2026-Q4","next","Alloy + Grafana as code kit","Versioned Alloy pipelines, Grafana dashboard JSON, alert rules, and freshness recording rules — cloneable, no vendor lock. Mimir as the metrics scale path beside InfluxDB."],
+    ["2.2","2027-Q1","planned","gNMI + flow first-class","gnmic subscriptions with freshness tags, IPFIX/sFlow distilled at the edge, WAN synthetics feeding the same dual-signal gate."],
+    ["3.0","2027","planned","What-if against intent","Batfish (or equivalent) scored against NetBox before a plan is even offered for approval. Closed loop stays human-gated; Aegis-style pre-deploy validation is the sibling, not a merge."]
+  ];
+  const SUITE = [
+    ["netlog-ai","Sanitize-first AI log analyzer. Syslog and CLI become prioritized, copy-pastable RCA playbooks.","https://github.com/gesh75/netlog-ai"],
+    ["aegis","Air-gapped pre-deployment change validation against a containerlab twin. Evidence leaves. Packets do not.","https://github.com/gesh75/aegis"],
+    ["argus","Agentic penetration tester. Read-only by default behind a fail-closed seven-layer guardrail.","https://github.com/gesh75/argus"],
+    ["multivendor-ai-network-lab","26-device closed loop. Health gate, confirmed-commit rollback, MCP tools, gnmic sidecar into InfluxDB.","https://github.com/gesh75/multivendor-ai-network-lab"],
+    ["napalm-live-lab","Honest multivendor NAPALM coverage plus a safe-by-default console of curated commands.","https://github.com/gesh75/napalm-live-lab"],
+    ["multivendor-cli-configurator","70k+ CLI commands across 17 vendors. Searchable, concept-aligned, zero-dependency reference.","https://github.com/gesh75/multivendor-cli-configurator"]
+  ];
+  const TAGS = ["NetBox","Grafana","InfluxDB","Loki","Tempo","Alloy","OpenTelemetry","Vector","gNMI","IPFIX","Ansible","Python","MCP"];
+  const COLLECTORS = [
+    {id:"sdwan", name:"sdwan-fabric", layer:"SD-WAN", protocol:"Vendor API", cadence:"5m", owner:"wan-ops", sloSec:900, site:"Core-DC-A"},
+    {id:"wlc", name:"branch-wlc", layer:"LAN / wireless", protocol:"Vendor API", cadence:"5m", owner:"campus-ops", sloSec:900, site:"Branch-14"},
+    {id:"fw", name:"fw-panorama", layer:"Firewall", protocol:"Vendor API", cadence:"10m", owner:"sec-ops", sloSec:1800, site:"Core-DC-A"},
+    {id:"rmm", name:"rmm-endpoint", layer:"Endpoint", protocol:"Vendor API", cadence:"15m", owner:"euc", sloSec:2400, site:"Cloud-East"},
+    {id:"syslog", name:"siem-syslog", layer:"Security", protocol:"rsyslog → Vector", cadence:"stream", owner:"sec-ops", sloSec:120, site:"Core-DC-B"},
+    {id:"vpc", name:"cloud-vpc", layer:"Public cloud", protocol:"Cloud API", cadence:"5m", owner:"cloud-net", sloSec:900, site:"Cloud-East"},
+    {id:"gnmi", name:"gnmi-core", layer:"Core routing", protocol:"gNMI", cadence:"stream", owner:"core-ops", sloSec:120, site:"Core-DC-A"},
+    {id:"flow", name:"flow-edge", layer:"WAN edge", protocol:"IPFIX", cadence:"stream", owner:"wan-ops", sloSec:180, site:"SD-WAN-Hub"}
+  ];
+  const DEVICES = [
+    {id:"r1", hostname:"core-rtr-a1", role:"P router", site:"Core-DC-A", vendor:"Juniper", intendedOs:"Junos 23.4R2", actualOs:"Junos 23.4R2", intendedAsn:"65001", actualAsn:"65001", intendedCircuits:8, actualCircuits:8, hardening:96},
+    {id:"r2", hostname:"core-rtr-b1", role:"P router", site:"Core-DC-B", vendor:"Cisco", intendedOs:"IOS-XR 7.11.2", actualOs:"IOS-XR 7.9.1", intendedAsn:"65001", actualAsn:"65001", intendedCircuits:8, actualCircuits:8, hardening:71},
+    {id:"e1", hostname:"edge-fw-a1", role:"Perimeter FW", site:"Core-DC-A", vendor:"Palo Alto", intendedOs:"PAN-OS 11.2", actualOs:"PAN-OS 11.2", intendedAsn:"—", actualAsn:"—", intendedCircuits:2, actualCircuits:2, hardening:91},
+    {id:"e2", hostname:"edge-fw-b1", role:"Perimeter FW", site:"Core-DC-B", vendor:"Palo Alto", intendedOs:"PAN-OS 11.2", actualOs:"PAN-OS 11.1", intendedAsn:"—", actualAsn:"—", intendedCircuits:2, actualCircuits:2, hardening:84},
+    {id:"s1", hostname:"br14-sw-01", role:"Access", site:"Branch-14", vendor:"Arista", intendedOs:"EOS 4.32", actualOs:"EOS 4.32", intendedAsn:"—", actualAsn:"—", intendedCircuits:1, actualCircuits:1, hardening:88},
+    {id:"s2", hostname:"br27-sw-01", role:"Access", site:"Branch-27", vendor:"Arista", intendedOs:"EOS 4.32", actualOs:"EOS 4.28", intendedAsn:"—", actualAsn:"—", intendedCircuits:1, actualCircuits:2, hardening:63},
+    {id:"w1", hostname:"sdwan-hub-1", role:"SD-WAN hub", site:"SD-WAN-Hub", vendor:"Viptela-class", intendedOs:"20.12", actualOs:"20.12", intendedAsn:"65010", actualAsn:"65010", intendedCircuits:12, actualCircuits:12, hardening:90},
+    {id:"c1", hostname:"tgw-east", role:"Cloud transit", site:"Cloud-East", vendor:"AWS", intendedOs:"managed", actualOs:"managed", intendedAsn:"64512", actualAsn:"64512", intendedCircuits:4, actualCircuits:3, hardening:80},
+    {id:"wlc", hostname:"br14-wlc", role:"WLC", site:"Branch-14", vendor:"Cisco", intendedOs:"17.12.4", actualOs:"17.12.4", intendedAsn:"—", actualAsn:"—", intendedCircuits:0, actualCircuits:0, hardening:86},
+    {id:"rr", hostname:"core-rr-a", role:"Route reflector", site:"Core-DC-A", vendor:"Nokia", intendedOs:"SR Linux 24.10", actualOs:"SR Linux 24.10", intendedAsn:"65001", actualAsn:"65001", intendedCircuits:0, actualCircuits:0, hardening:94}
+  ];
+  const SITES = [
+    ["Core-DC-A","East","Core"],["Core-DC-B","East","Core"],["SD-WAN-Hub","East","WAN"],
+    ["Branch-14","Midwest","Branch"],["Branch-27","Midwest","Branch"],["Cloud-East","East","Cloud"],["Cloud-West","West","Cloud"]
+  ];
+  const WAN_RB = [
+    "Confirm both signals: interface error counter AND syslog/IPFIX drop.",
+    "Check NetBox for the circuit ID, carrier, and maintenance window.",
+    "If a carrier window is open, annotate — do not ticket.",
+    "If not, open the carrier portal with the circuit ID from NetBox, not from memory.",
+    "Escalate per the ladder. Do not bounce the interface without an approved plan."
+  ];
+  const STARTERS = [
+    "Why is source of truth not discovery?",
+    "What would you do about the stale cloud-vpc feed?",
+    "Draft a check-mode plan to align core-rtr-b1 OS with intent.",
+    "Explain the dual-signal gate with the WAN loss example."
+  ];
 
-  <section>
-    <div class="shead">The pipeline</div>
-    <h2>From vendor APIs to an on-call alert</h2>
-    <p class="sintro">Five stages. Every one of them read-only by default, scheduled on organization-owned hosts, and
-      monitored for its own freshness — a dead feed raises an alert rather than going quiet. v2 keeps the shape and
-      upgrades the fabric: OTLP, Alloy, Tempo, gNMI, flow, adaptive sampling.</p>
+  function driftOf(d){
+    const f=[];
+    if(d.intendedOs!==d.actualOs) f.push(["OS", d.intendedOs, d.actualOs]);
+    if(d.intendedAsn!==d.actualAsn) f.push(["ASN", d.intendedAsn, d.actualAsn]);
+    if(d.intendedCircuits!==d.actualCircuits) f.push(["Circuits", String(d.intendedCircuits), String(d.actualCircuits)]);
+    return f;
+  }
+  function age(s){
+    s=Math.max(0, Math.floor(s));
+    if(s<60) return s+"s";
+    if(s<3600) return Math.floor(s/60)+"m";
+    if(s<86400) return Math.floor(s/3600)+"h";
+    return Math.floor(s/86400)+"d";
+  }
+  function esc(t){return String(t).replace(/[&<>"']/g, c => ({"&":"&","<":"<",">":">","\"":""","'":"&#39;"}[c]));}
+  function health(id){
+    const spec = COLLECTORS.find(c=>c.id===id);
+    const rt = state.collectors[id];
+    if(!spec || !rt || rt.killed) return "crit";
+    if(rt.ageSec > spec.sloSec) return "crit";
+    if(rt.ageSec > spec.sloSec * 0.6) return "warn";
+    return "ok";
+  }
+  function summary(){
+    let ok=0,warn=0,crit=0;
+    COLLECTORS.forEach(c => {
+      const h=health(c.id);
+      if(h==="ok") ok++; else if(h==="warn") warn++; else crit++;
+    });
+    return {ok,warn,crit, live: COLLECTORS.length-crit, pct: Math.round(ok/COLLECTORS.length*100)};
+  }
 
-    <div class="pipe">
-      <div class="stage" style="border-top-color:var(--blue);color:var(--blue)">
-        <div class="step">01</div>
-        <div class="n" style="color:var(--tx)">Sources</div>
-        <div class="d">Every layer of the estate, pulled from the vendor's own API, native syslog, gNMI, or exported flow. No agent on a production device.</div>
-        <ul>
-          <li>SD-WAN fabric</li><li>Branch LAN & wireless</li><li>Firewall estate</li>
-          <li>RMM & endpoint</li><li>Security telemetry</li><li>Public cloud networking</li>
-          <li class="v2">gNMI / OpenConfig streaming</li>
-          <li class="v2">IPFIX / sFlow / NetFlow</li>
-          <li class="v2">WAN synthetic probes</li>
-        </ul>
-      </div>
+  let seq=1;
+  const state = {
+    route: "/",
+    stage: "sources",
+    selected: "vpc",
+    filter: "drift",
+    writeDiscovery: false,
+    metric: false,
+    log: false,
+    plans: [],
+    messages: [{role:"plane", text:"Read-only control plane. I can see every feed, NetBox intent, and the drift list. I cannot change a device, restart a collector, or write the source of truth. Ask, or have me draft a plan."}],
+    events: [
+      {id:"e0", level:"crit", source:"cloud-vpc", text:"Freshness SLO breached — last beat 3h 17m ago"},
+      {id:"e1", level:"warn", source:"core-rtr-b1", text:"OS drift vs NetBox intent (IOS-XR 7.9.1 ≠ 7.11.2)"},
+      {id:"e2", level:"ok", source:"gnmi-core", text:"gNMI subscription healthy, 12 paths"},
+      {id:"e3", level:"warn", source:"br27-sw-01", text:"Undocumented circuit present — discovery ≠ intent"}
+    ],
+    collectors: {},
+    ask: "",
+    busy: false
+  };
+  COLLECTORS.forEach(c => {
+    const stale = c.id==="vpc";
+    state.collectors[c.id] = {ageSec: stale ? 11840 : (c.cadence==="stream"?6:54), killed:false, ingest: c.cadence==="stream"?196:28};
+  });
 
-      <div class="stage" style="border-top-color:var(--cyan);color:var(--cyan)">
-        <div class="step">02</div>
-        <div class="n" style="color:var(--tx)">Collect</div>
-        <div class="d">One collector per vendor. Rate-limit aware, restart-safe, heartbeat-monitored. Alloy speaks OTLP; Vector still owns syslog.</div>
-        <ul>
-          <li>Scheduled API collectors</li><li>rsyslog → Vector pipeline</li>
-          <li>Parsed and labeled at the edge</li><li>No agent on any production device</li>
-          <li class="v2">Grafana Alloy (OTLP)</li>
-          <li class="v2">Heartbeat + freshness SLO</li>
-          <li class="v2">Adaptive telemetry / sampling</li>
-        </ul>
-      </div>
+  function pushEvent(level, source, text){
+    state.events = [{id:"k"+(seq++), level, source, text}, ...state.events].slice(0,24);
+  }
 
-      <div class="stage" style="border-top-color:var(--grn);color:var(--grn)">
-        <div class="step">03</div>
-        <div class="n" style="color:var(--tx)">Store</div>
-        <div class="d">Four stores, four questions: what should exist, how is it performing, what just happened, how did the job run.</div>
-        <ul>
-          <li>NetBox — intent, IPAM, circuits</li><li>InfluxDB — metrics, tiered retention</li>
-          <li>Loki — estate-wide logs</li>
-          <li class="v2">Tempo — traces of jobs & hops</li>
-          <li class="v2">Mimir — OTLP metrics scale path</li>
-          <li class="v2">Git — config backups, dashboards</li>
-        </ul>
-      </div>
+  function tick(){
+    COLLECTORS.forEach(c => {
+      const rt = state.collectors[c.id];
+      if(rt.killed || c.id==="vpc"){
+        rt.ageSec += 2;
+        rt.ingest = Math.max(0, rt.ingest * 0.4);
+      } else {
+        const reset = c.cadence==="stream" ? rt.ageSec > 12 : rt.ageSec > 70 + Math.random()*40;
+        rt.ageSec = reset ? 1 + Math.random()*4 : rt.ageSec + 2;
+        rt.ingest = Math.max(8, rt.ingest + (Math.random()-0.45)*6);
+      }
+    });
+    patchLive();
+  }
 
-      <div class="stage" style="border-top-color:var(--amb);color:var(--amb)">
-        <div class="step">04</div>
-        <div class="n" style="color:var(--tx)">Visualize</div>
-        <div class="d">Dashboards and alert rules provisioned as code and versioned in git — not clicked together in a UI. Every panel has a named owner and an SLO.</div>
-        <ul>
-          <li>Grafana, provisioned from source</li><li>Fleet, WAN, capacity and SLA views</li>
-          <li>Every panel has a named owner</li>
-          <li class="v2">NetBox-enriched topology</li>
-          <li class="v2">SLO burn-rate views</li>
-          <li class="v2">Collector freshness heatmap</li>
-        </ul>
-      </div>
+  function routeFromHash(){
+    const h = (location.hash || "#/").replace(/^#/, "") || "/";
+    const path = h.split("?")[0] || "/";
+    state.route = path.startsWith("/") ? path : "/"+path;
+    const q = new URLSearchParams(h.split("?")[1] || "");
+    if(q.get("stage") && STAGES.some(s=>s.id===q.get("stage"))) state.stage = q.get("stage");
+  }
 
-      <div class="stage" style="border-top-color:var(--cor);color:var(--cor)">
-        <div class="step">05</div>
-        <div class="n" style="color:var(--tx)">Act</div>
-        <div class="d">Raw webhooks rendered into readable cards, each tied to a written runbook. AI reads everything and writes nothing.</div>
-        <ul>
-          <li>Chat alerts with runbook links</li><li>On-call escalation ladder</li>
-          <li>Carrier & WAN SLA for leadership</li>
-          <li class="v2">Dual-signal correlation gate</li>
-          <li class="v2">AI control plane (read-only)</li>
-          <li class="v2">Human-approved change plans</li>
-        </ul>
-      </div>
-    </div>
-  </section>
+  function go(to){
+    location.hash = to;
+  }
 
-  <section>
-    <div class="shead">What makes it hold up</div>
-    <h2>Three rules the whole thing is built on</h2>
-    <p class="sintro">A pipeline is easy. Keeping it trustworthy — and safe to point at production — is
-      the part that takes judgement.</p>
+  function navHtml(){
+    return NAV.map(([to,label]) => {
+      const on = to==="/" ? state.route==="/" : state.route.startsWith(to);
+      return `<a href="#${to}" data-nav="${to}" class="${on?"on":""}">${label}</a>`;
+    }).join("");
+  }
 
-    <div class="prin">
-      <div class="p"><span class="bar" style="background:var(--grn)"></span>
-        <div class="h" style="color:var(--grn)">Discipline</div>
-        <div class="t">Intent versus actual</div>
-        <p class="d">The source of truth holds intended state. Collectors report what devices actually run.
-          The gap between them is measured and reported — drift is detected, never assumed. Discovery never writes NetBox.</p>
-      </div>
-      <div class="p"><span class="bar" style="background:var(--amb)"></span>
-        <div class="h" style="color:var(--amb)">Automation</div>
-        <div class="t">Read-only until proven</div>
-        <p class="d">Scheduled jobs back configuration up to git and score every device against a hardening
-          baseline. Anything that writes runs in check-mode first, canary before fleet, with a recorded rollback.</p>
-      </div>
-      <div class="p"><span class="bar" style="background:var(--blue)"></span>
-        <div class="h" style="color:var(--blue)">AI control plane</div>
-        <div class="t">Read anything, change nothing</div>
-        <p class="d">A single agent reads every system in the stack and answers in plain English. It cannot
-          change anything — writes execute only inside a human-approved plan, fully audit-logged. Stale feeds are disclosed, never hidden.</p>
-      </div>
-    </div>
-  </section>
+  function localAnswer(prompt){
+    const q = prompt.toLowerCase();
+    if(/source of truth|discovery|netbox/.test(q)){
+      return "NetBox is intended state: what should exist. Collectors report actual state: what is running.\n\nIf you write discovery into NetBox you document mistakes as policy. Drift is a measured gap, not a merge.\n\nI can show you the drifted objects. I will not update NetBox.";
+    }
+    if(/stale|cloud-vpc|fresh/.test(q)){
+      return "cloud-vpc is stale — last beat well past its 15m SLO. Treat every VPC graph as untrusted until the heartbeat recovers.\n\nSilence is a failure state. Page the named owner (cloud-net) using the collector-stale runbook. Do not tight-loop the cloud API.\n\nI cannot restart the collector. Approve a plan if you want a human to revive the unit from the git-tracked systemd file.";
+    }
+    if(/core-rtr-b1|plan|check-mode|\bos\b/.test(q)){
+      return "PLAN\ntitle: Align core-rtr-b1 IOS-XR with NetBox intent 7.11.2\ncheck-mode: show version + compute delta against intended image; no write\ncanary: core-rtr-b1 only, confirmed-commit with 10m watch\nrollback: ISSU / install rollback to 7.9.1, recorded in the audit log\nrisk: control-plane SSO event on a P router — do not fleet this\n\nI will not execute this. A human approves, then a human (or gated automation) runs it.";
+    }
+    if(/dual|alert|wan/.test(q)){
+      return "The dual-signal gate exists because a single counter lies.\n\nWAN loss example: interface error-delta AND syslog/IPFIX drop must both fire. One alone is a yellow, not a page.\n\nIf people mute the channel, the architecture has already failed. Keep the gate strict.";
+    }
+    const feeds = COLLECTORS.map(c => {
+      const rt = state.collectors[c.id];
+      return `${c.name} ${health(c.id)} age=${age(rt.ageSec)} owner=${c.owner}`;
+    }).join("\n");
+    const drifted = DEVICES.filter(d => driftOf(d).length).map(d => d.hostname+" "+driftOf(d).map(f=>f[0]+":"+f[1]+"->"+f[2]).join(",")).join("\n");
+    return "Read-only control plane. I can explain the estate, score drift, and draft plans. I cannot change devices.\n\nCOLLECTORS\n"+feeds+"\n\nDRIFT\n"+(drifted||"none")+"\n\nAsk about freshness, drift, dual-signal, or a specific hostname.";
+  }
 
-  <section>
-    <div class="shead">Design decisions</div>
-    <h2>The parts people usually get wrong</h2>
+  function ask(prompt){
+    const text = (prompt||"").trim();
+    if(!text || state.busy) return;
+    state.busy = true;
+    state.ask = "";
+    state.messages.push({role:"operator", text});
+    render();
+    const reply = localAnswer(text);
+    state.messages.push({role:"plane", text: reply, source:"local"});
+    if(reply.indexOf("PLAN")>=0 && /title:\s*/i.test(reply)){
+      const title = (reply.match(/title:\s*(.+)/i)||[])[1] || "Drafted change plan";
+      state.plans.unshift({id:"p"+(seq++), title: title.trim(), body: reply, status:"proposed"});
+      state.plans = state.plans.slice(0,12);
+    }
+    state.busy = false;
+    render();
+  }
 
-    <div class="detail">
-      <div class="d-card">
-        <h3>Alerts that survive contact with humans</h3>
-        <p>An alert fires only when two independent signals agree. False positives die before they reach
-          anyone. A channel people mute is worse than no alerting at all.</p>
+  function command(){
+    const s = summary();
+    const drifted = DEVICES.filter(d => driftOf(d).length);
+    const dual = state.metric && state.log;
+    return `
+      <div class="eyebrow">Reference architecture · v2.0</div>
+      <h1>Network Observability<br><span class="muted">Source of Truth</span></h1>
+      <p class="lede">Vendor telemetry into an open-source stack. A source of truth that states what should exist. Drift measured against it. Automation that stays read-only until a human approves the change.</p>
+      <div class="row">
+        <span class="chip ok">Pages live</span>
+        <span class="chip">v1 published 2026-07-29</span>
+        <span class="chip">console 2026-08-29</span>
+        <span class="chip now">interactive</span>
       </div>
-      <div class="d-card">
-        <h3>Collectors that admit when they die</h3>
-        <p>Every feed reports its own freshness on a cadence. Silence is treated as a failure state, not as
-          good news — the most dangerous dashboard is one that is quietly three weeks stale.</p>
+      <div class="row">
+        <a class="btn" href="#/pipeline" data-nav="/pipeline">Walk the pipeline →</a>
+        <a class="btn ghost" href="#/control-plane" data-nav="/control-plane">Open the control plane</a>
       </div>
-      <div class="d-card">
-        <h3>Source of truth ≠ discovery</h3>
-        <p>NetBox records what the network is supposed to be. Discovery reports what it is. Conflating the
-          two produces a database that documents your mistakes instead of your intent.</p>
+      <div class="kpi">
+        <div class="card"><div class="k">Collectors</div><div class="v ${s.crit?"crit":"ok"}" data-kpi="live">${s.live}/${COLLECTORS.length}</div><div class="hint">heartbeat-monitored</div></div>
+        <div class="card"><div class="k">Stale feeds</div><div class="v ${s.crit?"crit":"ok"}" data-kpi="crit">${s.crit}</div><div class="hint">silence is a failure</div></div>
+        <div class="card"><div class="k">Freshness</div><div class="v ${s.pct<80?"warn":"ok"}" data-kpi="pct">${s.pct}%</div><div class="hint">inside SLO</div></div>
+        <div class="card"><div class="k">Drifted devices</div><div class="v ${drifted.length?"warn":"ok"}">${drifted.length}/${DEVICES.length}</div><div class="hint">intent ≠ actual</div></div>
       </div>
-      <div class="d-card">
-        <h3>Built to be handed over</h3>
-        <p>Everything runs on organization-owned infrastructure under version control, with runbooks, an
-          escalation ladder and a documented restore path. If it only works while one person is present,
-          it is a liability, not a platform.</p>
+      <div class="cols5" style="margin-top:16px">
+        ${STAGES.map(st => `<a class="stage-btn" href="#/pipeline" data-nav="/pipeline" data-stage="${st.id}"><div class="k">${st.step}</div><div style="margin-top:6px;font-weight:650">${st.name}</div></a>`).join("")}
       </div>
-      <div class="d-card">
-        <h3>OTLP is the interchange, not a vendor</h3>
-        <p>OpenTelemetry Protocol is how signals move in 2026. Alloy is a distribution, not a lock-in. Vendor APIs still get collected — they get normalized to OTLP at the edge.</p>
+      <div class="grid2 grid5" style="margin-top:16px">
+        <section class="panel">
+          <div class="hd"><div><div class="k">Collectors</div><h2>Freshness heatmap</h2></div><a href="#/estate" data-nav="/estate">Estate</a></div>
+          <ul class="list">${COLLECTORS.map(c => {
+            const h = health(c.id); const rt = state.collectors[c.id];
+            return `<li class="cell" style="display:flex;justify-content:space-between;gap:10px;align-items:center"><span style="display:flex;gap:8px;align-items:center;min-width:0"><span class="dot ${h}" data-health="${c.id}"></span><span class="mono" style="font-size:13px">${c.name}</span></span><span class="mono dim" data-age="${c.id}" style="font-size:12px">${age(rt.ageSec)}</span></li>`;
+          }).join("")}</ul>
+        </section>
+        <section class="panel">
+          <div class="hd"><div><div class="k">Source of truth</div><h2>Intent versus actual</h2></div><a href="#/drift" data-nav="/drift">Drift</a></div>
+          <ul class="list">${drifted.slice(0,4).map(d => {
+            const f = driftOf(d);
+            return `<li class="cell"><div style="display:flex;justify-content:space-between;gap:8px"><span class="mono" style="font-size:13px">${d.hostname}</span><span class="chip warn">${f.length} field${f.length>1?"s":""}</span></div><p class="dim" style="font-size:12px;margin-top:4px">${f.map(x=>x[0]+": "+x[1]+" → "+x[2]).join(" · ")}</p></li>`;
+          }).join("")}</ul>
+          <p class="dim" style="font-size:12px;margin-top:10px">Discovery reports. NetBox is not updated from this list.</p>
+        </section>
       </div>
-      <div class="d-card">
-        <h3>No agent on production network devices</h3>
-        <p>Collectors live on organization-owned hosts. Devices keep exporting what they already export: API, syslog, gNMI, IPFIX. A third-party agent on a core router is an availability problem disguised as convenience.</p>
+      <div class="grid2 grid5" style="margin-top:12px">
+        <section class="panel">
+          <div class="k">Act</div><h2>Dual-signal gate</h2>
+          <div class="list" style="margin-top:12px">
+            <div class="cell" style="display:flex;justify-content:space-between"><span class="muted">Signal A · interface error-delta</span><span class="dot ${state.metric?"ok":""}"></span></div>
+            <div class="cell" style="display:flex;justify-content:space-between"><span class="muted">Signal B · syslog / IPFIX drop</span><span class="dot ${state.log?"ok":""}"></span></div>
+            <div class="cell"><div class="k">Page</div><div class="${dual?"crit":"muted"}" style="margin-top:4px">${dual?"Firing — both agree":"Held — one signal is not enough"}</div></div>
+          </div>
+          <p style="margin-top:12px"><a href="#/alerts" data-nav="/alerts">Open the alert lab</a></p>
+        </section>
+        <section class="panel">
+          <div class="k">Live</div><h2>Event tape</h2>
+          <ul class="list" style="margin-top:12px">${state.events.slice(0,5).map(e => `<li style="display:flex;gap:10px"><span class="dot ${e.level}" style="margin-top:7px"></span><div><div class="mono dim" style="font-size:11px">${esc(e.source)}</div><p class="muted" style="font-size:13px">${esc(e.text)}</p></div></li>`).join("")}</ul>
+        </section>
       </div>
-      <div class="d-card">
-        <h3>Traces are for the pipeline, not the packets</h3>
-        <p>Tempo does not replace NetFlow. It traces collector runs and approved change plans so a write has a beginning, a middle, and a verdict. Packet-level truth stays in flow and syslog.</p>
-      </div>
-      <div class="d-card">
-        <h3>Cost scales with insight</h3>
-        <p>Adaptive sampling at the collector — not a warehouse that keeps every counter forever — is how an open-source stack survives a large estate. Freshness SLOs protect the signal; retention tiers protect the bill.</p>
-      </div>
-    </div>
-  </section>
+      <div class="tags">${TAGS.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+    `;
+  }
 
-  <section>
-    <div class="shead">Roadmap</div>
-    <h2>Where the project actually is</h2>
-    <p class="sintro">v1 was a single HTML file. v2 is the same pattern with a 2026 stack, a public revision of the docs, and an interactive console that demonstrates freshness, drift, dual-signal, and the read-only control plane.</p>
-    <div class="road">
-      <div class="rv"><div class="meta"><strong>v1.0</strong><span class="pill ok">shipped</span><span class="pill">2026-07-29</span></div><p class="d" style="color:var(--mut);margin:0">Reference page published. Five-stage pipeline, three rules, four design decisions. Zero dependencies.</p></div>
-      <div class="rv"><div class="meta"><strong>v1.1</strong><span class="pill ok">shipped</span><span class="pill">2026-08-22</span></div><p style="color:var(--mut);margin:0">Last static-only push. Repo remained HTML + architecture.png + README + MIT.</p></div>
-      <div class="rv"><div class="meta"><strong>v2.0</strong><span class="pill now">now</span><span class="pill">2026-08-29</span></div><p style="color:var(--mut);margin:0">This revision. OTLP/Alloy, Tempo, gNMI, flow, adaptive telemetry, SLO ownership, GitOps. Interactive console for estate, freshness, drift, dual-signal, and the AI control plane.</p></div>
-      <div class="rv"><div class="meta"><strong>v2.1</strong><span class="pill">next</span><span class="pill">2026-Q4</span></div><p style="color:var(--mut);margin:0">Alloy + Grafana as-code kit. Versioned pipelines, dashboard JSON, alert rules, freshness recording rules. Mimir as the metrics scale path beside InfluxDB.</p></div>
-      <div class="rv"><div class="meta"><strong>v2.2</strong><span class="pill">planned</span><span class="pill">2027-Q1</span></div><p style="color:var(--mut);margin:0">gNMI and flow first-class. gnmic subscriptions with freshness tags, IPFIX/sFlow distilled at the edge, WAN synthetics on the same dual-signal gate.</p></div>
-      <div class="rv"><div class="meta"><strong>v3.0</strong><span class="pill">planned</span><span class="pill">2027</span></div><p style="color:var(--mut);margin:0">What-if against intent. Batfish (or equivalent) scored against NetBox before a plan is offered. Closed loop stays human-gated; Aegis-style pre-deploy validation is the sibling, not a merge.</p></div>
-    </div>
-  </section>
+  function pipeline(){
+    const current = STAGES.find(s=>s.id===state.stage) || STAGES[0];
+    return `
+      <div class="eyebrow">The pipeline</div>
+      <h1>From vendor APIs to an on-call alert</h1>
+      <p class="lede">Five stages. Every one of them read-only by default, scheduled on organization-owned hosts, and monitored for its own freshness — a dead feed raises an alert rather than going quiet.</p>
+      <div class="cols5" style="margin-top:22px">
+        ${STAGES.map(s => `<button class="stage-btn ${s.id===state.stage?"on":""}" type="button" data-stage="${s.id}"><div class="k">${s.step}</div><div style="margin-top:6px;font-weight:650">${s.name}</div></button>`).join("")}
+      </div>
+      <div class="grid2 grid5" style="margin-top:14px">
+        <section class="panel">
+          <div class="k">Stage ${current.step}</div><h2>${current.name}</h2>
+          <div class="grid2" style="margin-top:14px">
+            <div class="cell"><div class="k">v1 · published</div><p class="muted" style="margin-top:8px;font-size:14px">${current.v1}</p></div>
+            <div class="cell"><div class="k">v2 <span class="chip now">this console</span></div><p class="muted" style="margin-top:8px;font-size:14px">${current.v2}</p></div>
+          </div>
+          <ul class="list" style="margin-top:12px;grid-template-columns:1fr 1fr">${current.items.map(it => `<li class="cell" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="muted">${it[0]}</span><span class="chip ${it[1]?"now":""}">${it[1]?"v2":"v1"}</span></li>`).join("")}</ul>
+        </section>
+        <section class="panel">
+          <div class="k">Stores</div><h2>Four questions</h2>
+          <dl style="margin-top:12px;display:grid;gap:12px;font-size:14px">
+            <div><dt class="dim">What should exist?</dt><dd>NetBox — intent, IPAM, circuits</dd></div>
+            <div><dt class="dim">How is it performing?</dt><dd>InfluxDB now · Mimir as the scale path</dd></div>
+            <div><dt class="dim">What just happened?</dt><dd>Loki — estate-wide logs</dd></div>
+            <div><dt class="dim">How did the job run?</dt><dd>Tempo — collector hops and change plans</dd></div>
+          </dl>
+        </section>
+      </div>
+      <h2 style="margin-top:36px">Three rules the whole thing is built on</h2>
+      <p class="lede" style="margin-top:8px">A pipeline is easy. Keeping it trustworthy — and safe to point at production — is the part that takes judgement.</p>
+      <div class="cols3" style="margin-top:16px">${PRINCIPLES.map(p => `<div class="panel"><div class="k accent">${p[0]}</div><h2 style="margin-top:8px">${p[1]}</h2><p class="muted" style="margin-top:10px;font-size:14px">${p[2]}</p></div>`).join("")}</div>
+      <h2 style="margin-top:36px">The parts people usually get wrong</h2>
+      <div class="grid2" style="margin-top:16px">${DECISIONS.map(d => `<div class="panel"><h2 style="font-size:16px">${d[0]}</h2><p class="muted" style="margin-top:8px;font-size:14px">${d[1]}</p></div>`).join("")}</div>
+    `;
+  }
 
-  <section>
-    <div class="shead">GESH suite</div>
-    <h2>Sibling projects</h2>
-    <p class="sintro suite">Observability does not live alone.
-      <a href="https://github.com/gesh75/netlog-ai">netlog-ai</a> turns syslog into RCA.
-      <a href="https://github.com/gesh75/aegis">aegis</a> validates before deploy.
-      <a href="https://github.com/gesh75/argus">argus</a> tests the perimeter.
-      <a href="https://github.com/gesh75/multivendor-ai-network-lab">multivendor-ai-network-lab</a> closes the loop.</p>
-  </section>
+  function estate(){
+    const spec = COLLECTORS.find(c=>c.id===state.selected) || COLLECTORS[0];
+    const rt = state.collectors[spec.id];
+    const h = health(spec.id);
+    const maxIn = Math.max(1, ...COLLECTORS.map(c => state.collectors[c.id].ingest));
+    return `
+      <div class="eyebrow">Estate</div>
+      <h1>Collectors that admit when they die</h1>
+      <p class="lede">Eight feeds, one per layer. No agent on a production device. Kill a collector and the heatmap goes red — silence is not treated as good news.</p>
+      <div class="cols4" style="margin-top:22px">
+        ${COLLECTORS.map(c => {
+          const hh = health(c.id); const r = state.collectors[c.id];
+          return `<button type="button" class="feed-btn ${c.id===spec.id?"on":""}" data-select="${c.id}">
+            <div style="display:flex;justify-content:space-between"><span class="dot ${hh}" data-health="${c.id}"></span><span class="mono dim" data-age="${c.id}" style="font-size:12px">${age(r.ageSec)}</span></div>
+            <div class="mono" style="margin-top:10px;font-size:13px">${c.name}</div>
+            <div class="dim" style="margin-top:4px;font-size:12px">${c.protocol}</div>
+          </button>`;
+        }).join("")}
+      </div>
+      <div class="grid2 grid5" style="margin-top:14px">
+        <section class="panel">
+          <div class="k">${spec.layer}</div><h2>${spec.name}</h2>
+          <div class="grid2" style="margin-top:12px">
+            ${[["Protocol",spec.protocol],["Cadence",spec.cadence],["Owner",spec.owner],["Site",spec.site],["Freshness SLO",spec.sloSec+"s"],["Age",age(rt.ageSec)]].map(x=>`<div class="cell"><div class="k">${x[0]}</div><div class="mono" style="font-size:13px;margin-top:4px" ${x[0]==="Age"?'data-age="'+spec.id+'"':""}>${x[1]}</div></div>`).join("")}
+          </div>
+          <div class="row">
+            <span class="chip ${h}">${h==="ok"?"inside SLO":h==="warn"?"aging":"stale / dead"}</span>
+            ${rt.killed
+              ? `<button class="btn ok" type="button" data-revive="${spec.id}">Revive from git unit</button>`
+              : `<button class="btn ghost" type="button" data-kill="${spec.id}">Simulate dead feed</button>`}
+          </div>
+          <p class="dim" style="font-size:12px;margin-top:12px">Runbook: collector-stale. Do not tight-loop a 429. Restore from the versioned unit file, not a hotfix on the box.</p>
+        </section>
+        <section class="panel">
+          <div class="k">Ingest</div><h2>Relative rate</h2>
+          <div style="margin-top:8px">${COLLECTORS.map(c => {
+            const pct = Math.round(state.collectors[c.id].ingest / maxIn * 100);
+            return `<div class="bar-row"><span class="dim">${c.name.split("-")[0]}</span><div class="bar"><i data-bar="${c.id}" style="width:${pct}%"></i></div><span class="mono dim" data-ing="${c.id}">${Math.round(state.collectors[c.id].ingest)}</span></div>`;
+          }).join("")}</div>
+        </section>
+      </div>
+      <section class="panel" style="margin-top:12px">
+        <div class="k">Topology</div><h2>Sites the collectors sit in</h2>
+        <div class="cols4" style="margin-top:12px">${SITES.map(s => {
+          const here = COLLECTORS.filter(c => c.site===s[0]);
+          return `<div class="cell"><div class="k">${s[2]}</div><div style="font-weight:650;margin-top:4px">${s[0]}</div><div class="dim" style="font-size:12px">${s[1]}</div><div style="margin-top:10px">${here.length?here.map(c=>`<div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--mut);margin:3px 0"><span class="dot ${health(c.id)}" data-health="${c.id}"></span>${c.name}</div>`).join(""):`<span class="dim" style="font-size:12px">No collector hosted here</span>`}</div></div>`;
+        }).join("")}</div>
+      </section>
+    `;
+  }
 
-  <footer>
-    <p class="note">Generic reference pattern — no client, environment, or proprietary detail.
-      Tooling names are open-source projects, not an endorsement of any vendor. v2.0 · 2026-08-29.</p>
-    <div class="tags">
-      <span class="tag">NetBox</span><span class="tag">Grafana</span><span class="tag">InfluxDB</span>
-      <span class="tag">Loki</span><span class="tag">Tempo</span><span class="tag">Alloy</span>
-      <span class="tag">OpenTelemetry</span><span class="tag">Vector</span><span class="tag">gNMI</span>
-      <span class="tag">IPFIX</span><span class="tag">Ansible</span><span class="tag">Python</span>
-      <span class="tag">MCP</span>
-    </div>
-  </footer>
+  function drift(){
+    const rows = DEVICES.map(d => ({d, f: driftOf(d)})).filter(r => state.filter==="all" ? true : r.f.length);
+    const drifted = DEVICES.filter(d => driftOf(d).length);
+    const intendedB1 = state.writeDiscovery ? "IOS-XR 7.9.1" : "IOS-XR 7.11.2";
+    return `
+      <div class="eyebrow">Source of truth</div>
+      <h1>Intent versus actual</h1>
+      <p class="lede">NetBox holds what the network is supposed to be. Collectors report what it is. The gap is measured. It is never written back.</p>
+      <div class="grid2 grid5" style="margin-top:22px">
+        <section class="panel">
+          <div class="k">Estate</div><h2>${drifted.length} drifted / ${DEVICES.length} devices</h2>
+          <div class="row">
+            <button class="btn ${state.filter==="drift"?"":"ghost"}" type="button" data-filter="drift">Drift only</button>
+            <button class="btn ${state.filter==="all"?"":"ghost"}" type="button" data-filter="all">All devices</button>
+          </div>
+          <div class="scroll" style="margin-top:8px">
+            <table>
+              <thead><tr><th>Host</th><th>Role</th><th>Intended</th><th>Actual</th><th>Score</th></tr></thead>
+              <tbody>${rows.map(({d,f}) => `<tr>
+                <td class="mono">${d.hostname}</td>
+                <td class="muted">${d.role}</td>
+                <td class="muted">${d.id==="r2"?intendedB1:d.intendedOs}</td>
+                <td class="mono ${f.some(x=>x[0]==="OS")?"warn":""}">${d.actualOs}</td>
+                <td>${f.length?`<span class="chip warn">${f.length}</span>`:`<span class="chip ok">aligned</span>`}</td>
+              </tr>`).join("")}</tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="k">Anti-pattern</div><h2>Write discovery into NetBox?</h2>
+          <p class="muted" style="font-size:14px">Toggle the mistake people ship. The database starts documenting whatever drifted last Tuesday.</p>
+          <button class="btn ${state.writeDiscovery?"danger":"ghost"}" type="button" data-discovery style="margin-top:14px;width:100%">${state.writeDiscovery?"Discovery is writing NetBox":"Keep SoT separate"}</button>
+          <div class="cell" style="margin-top:12px;font-size:14px">${state.writeDiscovery
+            ? `<p class="crit">core-rtr-b1 intended OS is now 7.9.1. The mistake is policy. Tomorrow's audit will bless it.</p>`
+            : `<p class="ok">Intended OS stays 7.11.2. Actual is 7.9.1. Drift is visible. A human decides whether to change the device or change intent.</p>`}</div>
+        </section>
+      </div>
+      <div class="grid2" style="margin-top:12px">${drifted.map(d => `<div class="panel">
+        <div style="display:flex;justify-content:space-between;gap:10px"><div><div class="mono" style="font-size:13px">${d.hostname}</div><div class="dim" style="font-size:12px">${d.vendor} · ${d.site}</div></div><span class="chip warn">hardening ${d.hardening}</span></div>
+        <ul class="list" style="margin-top:12px">${driftOf(d).map(f => `<li class="cell" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px"><span class="dim">${f[0]}</span><span class="muted">${f[1]}</span><span class="mono warn">${f[2]}</span></li>`).join("")}</ul>
+      </div>`).join("")}</div>
+    `;
+  }
 
-</div>
-</body></html>
+  function alerts(){
+    const firing = state.metric && state.log;
+    const muted = state.metric !== state.log;
+    return `
+      <div class="eyebrow">Act</div>
+      <h1>Alerts that survive contact with humans</h1>
+      <p class="lede">An alert fires only when two independent signals agree. Flip each feed. A channel people mute is worse than no alerting at all.</p>
+      <div class="grid2" style="margin-top:22px">
+        <section class="panel">
+          <div class="k">Signal A</div><h2>Interface error-delta</h2>
+          <p class="muted" style="margin-top:8px;font-size:14px">InfluxDB counter on sdwan-hub-1 ge-0/0/0. Independent of logs.</p>
+          <button class="btn ${state.metric?"":"ghost"}" type="button" data-metric style="margin-top:14px">${state.metric?"Metric firing":"Metric quiet"}</button>
+        </section>
+        <section class="panel">
+          <div class="k">Signal B</div><h2>Syslog / IPFIX drop</h2>
+          <p class="muted" style="margin-top:8px;font-size:14px">Loki line + flow-edge loss. Independent of the interface counter.</p>
+          <button class="btn ${state.log?"":"ghost"}" type="button" data-log style="margin-top:14px">${state.log?"Log firing":"Log quiet"}</button>
+        </section>
+      </div>
+      <section class="panel" style="margin-top:12px">
+        <div class="hd"><div><div class="k">Gate</div><h2>${firing?"Page — both signals agree":"Held"}</h2></div><span class="chip ${firing?"crit":muted?"warn":"ok"}">${firing?"firing":"suppressed"}</span></div>
+        <div class="cols3">
+          ${[["A · metric", state.metric],["B · log/flow", state.log],["AND gate", firing]].map(x => `<div class="cell"><span class="dot ${x[1]?"ok":""}"></span> <span style="margin-left:6px">${x[0]}</span></div>`).join("")}
+        </div>
+        ${muted && !firing ? `<p class="warn" style="margin-top:14px;font-size:14px">One signal is hot. That is a yellow for the owner, not a page. Paging on a single counter is how channels die.</p>` : ""}
+        ${firing ? `<div class="cell" style="margin-top:16px"><div class="k">Runbook</div><h2 style="margin-top:4px">WAN loss — dual signal</h2><ol class="muted" style="margin:10px 0 0 18px;font-size:14px">${WAN_RB.map(s=>`<li style="margin:4px 0">${s}</li>`).join("")}</ol></div>` : `<p class="dim" style="margin-top:14px;font-size:14px">No card is sent until the gate closes. The on-call channel stays quiet.</p>`}
+      </section>
+      <div class="grid2" style="margin-top:12px">
+        <section class="panel"><div class="k">Also gated</div><h2>Collector death</h2><p class="muted" style="margin-top:8px;font-size:14px">Heartbeat miss plus missing ingest. One empty graph is not a page — the second signal is the missing beat file on the collector host.</p></section>
+        <section class="panel"><div class="k">Never gated</div><h2>A dashboard going quiet</h2><p class="muted" style="margin-top:8px;font-size:14px">Quiet is how three-week-stale graphs happen. Freshness has its own SLO. It pages the collector owner, not the WAN on-call.</p></section>
+      </div>
+    `;
+  }
+
+  function plane(){
+    return `
+      <div class="eyebrow">AI control plane</div>
+      <h1>Read anything, change nothing</h1>
+      <p class="lede">A single agent reads the stack and answers in plain English. Writes execute only inside a human-approved plan, fully audit-logged. Stale feeds are disclosed.</p>
+      <div class="grid2 grid5" style="margin-top:22px">
+        <section class="panel">
+          <div class="k">Session</div><h2>Operator channel</h2>
+          <div id="chat" style="max-height:480px;overflow:auto;margin-top:8px">
+            ${state.messages.map(m => `<div class="msg ${m.role==="operator"?"op":"pl"}"><div class="k" style="margin-bottom:4px">${m.role==="operator"?"Operator":"Control plane"} ${m.source?`<span class="chip">${m.source}</span>`:""}</div><pre class="muted" style="white-space:pre-wrap;font-family:inherit;font-size:14px">${esc(m.text)}</pre></div>`).join("")}
+          </div>
+          <form class="ask" id="ask-form">
+            <label class="skip" for="ask">Ask the control plane</label>
+            <input id="ask" name="ask" value="${esc(state.ask)}" placeholder="Ask about freshness, drift, or draft a plan" autocomplete="off">
+            <button class="btn" type="submit" ${state.busy?"disabled":""}>${state.busy?"Reading…":"Ask"}</button>
+          </form>
+          <div class="starters">${STARTERS.map(s => `<button type="button" data-starter="${esc(s)}">${esc(s)}</button>`).join("")}</div>
+        </section>
+        <div style="display:grid;gap:12px">
+          <section class="panel">
+            <div class="k">Guardrail</div><h2>What I cannot do</h2>
+            <ul class="muted" style="margin-top:10px;padding-left:18px;font-size:14px">
+              <li>Restart a collector</li><li>Push configuration</li><li>Write NetBox from discovery</li>
+              <li>Page on a single signal</li><li>Pretend a stale feed is current</li>
+            </ul>
+          </section>
+          <section class="panel">
+            <div class="k">Audit</div><h2>Change plans</h2>
+            ${state.plans.length===0 ? `<p class="dim" style="margin-top:10px;font-size:14px">No plans drafted this session. Ask for a check-mode plan.</p>` : `<ul class="list" style="margin-top:10px">${state.plans.map(p => `<li class="cell"><div style="display:flex;justify-content:space-between;gap:8px"><strong style="font-size:14px">${esc(p.title)}</strong><span class="chip ${p.status==="approved"?"ok":p.status==="rejected"?"crit":"warn"}">${p.status}</span></div>${p.status==="proposed"?`<div class="row"><button class="btn" type="button" data-approve="${p.id}">Approve</button><button class="btn ghost" type="button" data-reject="${p.id}">Reject</button></div>`:`<p class="dim" style="margin-top:8px;font-size:12px">Logged. Execution remains a human.</p>`}</li>`).join("")}</ul>`}
+          </section>
+        </div>
+      </div>
+    `;
+  }
+
+  function roadmap(){
+    const tone = {shipped:"ok", now:"now", next:"warn", planned:""};
+    return `
+      <div class="eyebrow">Status</div>
+      <h1>Where the project actually is</h1>
+      <p class="lede">The public docs site was a single HTML file. This console is v2 of the pattern — same rules, a 2026 stack, and the interactions the static page could not demonstrate.</p>
+      <div class="cols4" style="margin-top:22px">
+        ${[["Repo","network-observability-architecture"],["Version","2.0"],["Created","2026-07-29"],["License","MIT"]].map(x=>`<div class="card"><div class="k">${x[0]}</div><div style="margin-top:6px;font-weight:650;font-size:15px">${x[1]}</div></div>`).join("")}
+      </div>
+      <ol style="list-style:none;margin-top:18px;display:grid;gap:10px">${ROADMAP.map(r => `<li class="panel"><div class="row" style="margin:0"><span class="mono accent">v${r[0]}</span><span class="chip ${tone[r[2]]}">${r[2]}</span><span class="chip">${r[1]}</span></div><h2 style="margin-top:8px;font-size:18px">${r[3]}</h2><p class="muted" style="margin-top:8px;font-size:14px">${r[4]}</p></li>`).join("")}</ol>
+      <section class="panel" style="margin-top:16px">
+        <div class="k">Research folded into v2</div><h2>What 2026 changed</h2>
+        <div class="grid2" style="margin-top:12px">
+          <div><strong>OpenTelemetry is the interchange</strong><p class="muted" style="font-size:14px;margin-top:4px">OTLP, Grafana Alloy, semantic conventions. Vendor APIs still exist; they get normalized at the edge.</p></div>
+          <div><strong>LGTM+ beside Influx</strong><p class="muted" style="font-size:14px;margin-top:4px">Loki, Grafana, Tempo, Mimir, Pyroscope. Tempo traces the pipeline, not the packets.</p></div>
+          <div><strong>gNMI and flow</strong><p class="muted" style="font-size:14px;margin-top:4px">SNMP is not gone. Streaming telemetry and IPFIX/sFlow sit next to it. Collectors still do not live on the routers.</p></div>
+          <div><strong>NetBox stays intent</strong><p class="muted" style="font-size:14px;margin-top:4px">NetBox Observability and Orb prove the industry agrees: design context first, then telemetry. Discovery does not overwrite SoT.</p></div>
+          <div><strong>Adaptive telemetry</strong><p class="muted" style="font-size:14px;margin-top:4px">Cost scales with insight. Freshness SLOs protect the signal; retention tiers protect the bill.</p></div>
+          <div><strong>AI stays gated</strong><p class="muted" style="font-size:14px;margin-top:4px">First-party cloud assistants often leave the building. This control plane is read-only, local-context, human approved.</p></div>
+        </div>
+      </section>
+      <h2 style="margin-top:32px">Sibling GESH projects</h2>
+      <div class="grid2" style="margin-top:12px">${SUITE.map(s => `<a class="panel" href="${s[2]}" style="color:inherit;text-decoration:none"><div class="k">${s[0]}</div><p class="muted" style="margin-top:8px;font-size:14px">${s[1]}</p></a>`).join("")}</div>
+    `;
+  }
+
+  const views = {
+    "/": command,
+    "/pipeline": pipeline,
+    "/estate": estate,
+    "/drift": drift,
+    "/alerts": alerts,
+    "/control-plane": plane,
+    "/roadmap": roadmap
+  };
+
+  function renderChrome(){
+    document.getElementById("nav").innerHTML = navHtml();
+    document.getElementById("mob").innerHTML = navHtml();
+    const s = summary();
+    const overall = s.crit ? "crit" : s.warn ? "warn" : "ok";
+    document.getElementById("feed-dot").className = "dot "+overall;
+    document.getElementById("feed-count").textContent = s.live+"/"+COLLECTORS.length+" feeds";
+  }
+
+  function render(){
+    renderChrome();
+    const fn = views[state.route] || command;
+    document.getElementById("view").innerHTML = fn();
+    document.title = (NAV.find(n => n[0]===state.route)||[,"Command"])[1] + " · GESH Observability";
+    const chat = document.getElementById("chat");
+    if(chat) chat.scrollTop = chat.scrollHeight;
+    const input = document.getElementById("ask");
+    if(input && document.activeElement && document.activeElement.id==="ask") input.focus();
+  }
+
+  function patchLive(){
+    renderChrome();
+    document.querySelectorAll("[data-age]").forEach(el => {
+      const id = el.getAttribute("data-age");
+      const rt = state.collectors[id];
+      if(rt) el.textContent = age(rt.ageSec);
+    });
+    document.querySelectorAll("[data-health]").forEach(el => {
+      el.className = "dot "+health(el.getAttribute("data-health"));
+    });
+    const s = summary();
+    const live = document.querySelector("[data-kpi=live]");
+    const crit = document.querySelector("[data-kpi=crit]");
+    const pct = document.querySelector("[data-kpi=pct]");
+    if(live){ live.textContent = s.live+"/"+COLLECTORS.length; live.className = "v "+(s.crit?"crit":"ok"); }
+    if(crit){ crit.textContent = String(s.crit); crit.className = "v "+(s.crit?"crit":"ok"); }
+    if(pct){ pct.textContent = s.pct+"%"; pct.className = "v "+(s.pct<80?"warn":"ok"); }
+    const maxIn = Math.max(1, ...COLLECTORS.map(c => state.collectors[c.id].ingest));
+    document.querySelectorAll("[data-bar]").forEach(el => {
+      const id = el.getAttribute("data-bar");
+      el.style.width = Math.round(state.collectors[id].ingest / maxIn * 100)+"%";
+    });
+    document.querySelectorAll("[data-ing]").forEach(el => {
+      el.textContent = String(Math.round(state.collectors[el.getAttribute("data-ing")].ingest));
+    });
+  }
+
+  document.addEventListener("click", function(e){
+    const t = e.target.closest("[data-nav],[data-stage],[data-select],[data-kill],[data-revive],[data-filter],[data-discovery],[data-metric],[data-log],[data-starter],[data-approve],[data-reject],#ham");
+    if(!t) return;
+    if(t.id==="ham"){
+      document.getElementById("chrome").classList.toggle("open");
+      t.setAttribute("aria-label", document.getElementById("chrome").classList.contains("open") ? "Close menu" : "Open menu");
+      return;
+    }
+    if(t.hasAttribute("data-nav")){
+      const to = t.getAttribute("data-nav");
+      if(t.hasAttribute("data-stage")) state.stage = t.getAttribute("data-stage");
+      document.getElementById("chrome").classList.remove("open");
+      if(t.tagName==="A") return;
+      e.preventDefault();
+      go(to);
+      return;
+    }
+    if(t.hasAttribute("data-stage")){ state.stage = t.getAttribute("data-stage"); render(); return; }
+    if(t.hasAttribute("data-select")){ state.selected = t.getAttribute("data-select"); render(); return; }
+    if(t.hasAttribute("data-kill")){
+      const id = t.getAttribute("data-kill");
+      state.collectors[id].killed = true;
+      const spec = COLLECTORS.find(c=>c.id===id);
+      pushEvent("crit", spec?spec.name:id, "Heartbeat stopped — feed treated as dead, not quiet");
+      render(); return;
+    }
+    if(t.hasAttribute("data-revive")){
+      const id = t.getAttribute("data-revive");
+      state.collectors[id].killed = false;
+      state.collectors[id].ageSec = 2;
+      state.collectors[id].ingest = 24;
+      const spec = COLLECTORS.find(c=>c.id===id);
+      pushEvent("ok", spec?spec.name:id, "Collector revived — freshness SLO recovering");
+      render(); return;
+    }
+    if(t.hasAttribute("data-filter")){ state.filter = t.getAttribute("data-filter"); render(); return; }
+    if(t.hasAttribute("data-discovery")){ state.writeDiscovery = !state.writeDiscovery; render(); return; }
+    if(t.hasAttribute("data-metric")){ state.metric = !state.metric; render(); return; }
+    if(t.hasAttribute("data-log")){ state.log = !state.log; render(); return; }
+    if(t.hasAttribute("data-starter")){ ask(t.getAttribute("data-starter")); return; }
+    if(t.hasAttribute("data-approve")){
+      const id = t.getAttribute("data-approve");
+      state.plans = state.plans.map(p => p.id===id ? Object.assign({}, p, {status:"approved"}) : p);
+      pushEvent("ok","control-plane","Change plan "+id+" approved — execution remains human");
+      render(); return;
+    }
+    if(t.hasAttribute("data-reject")){
+      const id = t.getAttribute("data-reject");
+      state.plans = state.plans.map(p => p.id===id ? Object.assign({}, p, {status:"rejected"}) : p);
+      pushEvent("warn","control-plane","Change plan "+id+" rejected — execution remains human");
+      render(); return;
+    }
+  });
+
+  document.addEventListener("submit", function(e){
+    if(e.target && e.target.id==="ask-form"){
+      e.preventDefault();
+      const input = document.getElementById("ask");
+      ask(input ? input.value : "");
+    }
+  });
+
+  window.addEventListener("hashchange", function(){
+    routeFromHash();
+    render();
+    window.scrollTo(0,0);
+  });
+
+  routeFromHash();
+  render();
+  setInterval(tick, 2000);
+})();
+</script>
+</body>
+</html>
