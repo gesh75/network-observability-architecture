@@ -278,7 +278,15 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
     if(s<86400) return Math.floor(s/3600)+"h";
     return Math.floor(s/86400)+"d";
   }
-  function esc(t){return String(t).replace(/[&<>"']/g, c => ({"&":"&","<":"<",">":">","\"":""","'":"&#39;"}[c]));}
+  function esc(t){
+    return String(t).replace(/[&<>"']/g, function(c){
+      if(c==="&") return "\u0026amp;";
+      if(c==="<") return "\u0026lt;";
+      if(c===">") return "\u0026gt;";
+      if(c==='"') return "\u0026quot;";
+      return "\u0026#39;";
+    });
+  }
   function health(id){
     const spec = COLLECTORS.find(c=>c.id===id);
     const rt = state.collectors[id];
@@ -720,7 +728,12 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
   }
 
   function patchLive(){
-    renderChrome();
+    const s = summary();
+    const overall = s.crit ? "crit" : s.warn ? "warn" : "ok";
+    const dot = document.getElementById("feed-dot");
+    const count = document.getElementById("feed-count");
+    if(dot) dot.className = "dot "+overall;
+    if(count) count.textContent = s.live+"/"+COLLECTORS.length+" feeds";
     document.querySelectorAll("[data-age]").forEach(el => {
       const id = el.getAttribute("data-age");
       const rt = state.collectors[id];
