@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Smoke CI for the Pages console (`scripts/check.py`: required files, PNG 2000×1400, inline script parse, HTML-entity landmine).
+- `<noscript>` fallback to `ARCHITECTURE.md` if the console cannot boot.
+- Drift lab: writing discovery into NetBox clears `core-rtr-b1` OS drift so the anti-pattern is visible.
+
 ## v2.0 — 2026-08-29
 
 Shipped. Interactive architecture console on GitHub Pages.
