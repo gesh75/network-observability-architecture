@@ -1,5 +1,10 @@
 # Gap analysis — network-observability-architecture
 
+> Merge note (2026-09-20): `origin/main` was merged into this Cursor gap-scan
+> branch. Unique scan/fix work from the PR is kept. Do not drop later main
+> changes in other files.
+
+
 **Date:** 2026-09-05
 **Scope:** docs / GitHub Pages console (no backend). Ranked by evidence, not taste.
 **Method:** read the tree, parse the inline script, curl the live host and sibling repos, inspect git history. No dependency upgrades. No new product features.

@@ -1,94 +1,111 @@
 #!/usr/bin/env python3
-"""Smoke-check the Pages console. Exit 0 only if the site can still boot.
-
-Catches the class of failure already shipped twice (949aee3, 1d2b1d8):
-an HTML-decoded escape helper that made the inline script invalid JS
-and left GitHub Pages as a blank shell.
-"""
+"""Smoke-check the Pages console. CPython + node only. No npm package."""
 from __future__ import annotations
 
 import re
 import struct
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-REQUIRED = (
-    "index.html",
+REQUIRED_FILES = (
+    ".nojekyll",
     "ARCHITECTURE.md",
     "CHANGELOG.md",
-    "README.md",
     "LICENSE",
+    "README.md",
     "architecture.png",
-    ".nojekyll",
+    "index.html",
 )
-SCRIPT_IDS = ("view", "nav", "ham", "chrome", "feed-dot", "feed-count")
-ENTITY_RE = re.compile(r"&(?:amp|lt|gt|quot|#39|#x27);", re.I)
-OG_SIZE = (2000, 1400)
+BOOT_IDS = ("view", "nav", "mob", "ham", "chrome", "feed-dot", "feed-count")
+ENTITY_IN_SCRIPT = re.compile(r"&(?:amp|lt|gt|quot|#39|#x27);")
+OG_DIM = re.compile(
+    r'<meta property="og:image:(width|height)" content="(\d+)">'
+)
 
 
 def fail(msg: str) -> None:
     print(f"FAIL: {msg}", file=sys.stderr)
-    raise SystemExit(1)
+    sys.exit(1)
 
 
 def png_size(path: Path) -> tuple[int, int]:
     data = path.read_bytes()
     if data[:8] != b"\x89PNG\r\n\x1a\n":
         fail(f"{path.name} is not a PNG")
-    ihdr = data.find(b"IHDR")
-    if ihdr < 0:
-        fail(f"{path.name} has no IHDR")
-    return struct.unpack(">II", data[ihdr + 4 : ihdr + 12])
+    # IHDR is the first chunk.
+    length, typ = struct.unpack(">I4s", data[8:16])
+    if typ != b"IHDR" or length < 8:
+        fail(f"{path.name} missing IHDR")
+    width, height = struct.unpack(">II", data[16:24])
+    return width, height
 
 
 def extract_script(html: str) -> str:
-    blocks = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
-    if len(blocks) != 1:
-        fail(f"expected exactly one inline <script>, found {len(blocks)}")
-    return blocks[0]
+    start = html.find("<script>")
+    end = html.find("</script>", start)
+    if start < 0 or end < 0:
+        fail("index.html has no inline <script>")
+    return html[start + len("<script>") : end]
 
 
 def main() -> None:
-    missing = [name for name in REQUIRED if not (ROOT / name).is_file()]
+    missing = [name for name in REQUIRED_FILES if not (ROOT / name).is_file()]
     if missing:
-        fail("missing required files: " + ", ".join(missing))
-
-    png = ROOT / "architecture.png"
-    width, height = png_size(png)
-    if (width, height) != OG_SIZE:
-        fail(f"architecture.png is {width}x{height}, expected {OG_SIZE[0]}x{OG_SIZE[1]}")
+        fail("missing files: " + ", ".join(missing))
 
     html = (ROOT / "index.html").read_text(encoding="utf-8")
-    if "<noscript" not in html:
-        fail("index.html has no <noscript> fallback (blank shell if JS dies)")
-    for element_id in SCRIPT_IDS:
-        if f'id="{element_id}"' not in html:
-            fail(f"index.html missing id={element_id}")
+    for boot_id in BOOT_IDS:
+        if f'id="{boot_id}"' not in html:
+            fail(f'index.html missing id="{boot_id}" (console will not boot)')
 
-    og_w = re.search(r'property="og:image:width" content="(\d+)"', html)
-    og_h = re.search(r'property="og:image:height" content="(\d+)"', html)
-    if not og_w or not og_h:
-        fail("index.html missing og:image width/height")
-    if (int(og_w.group(1)), int(og_h.group(1))) != (width, height):
-        fail("og:image dimensions do not match architecture.png")
+    width, height = png_size(ROOT / "architecture.png")
+    if (width, height) != (2000, 1400):
+        fail(f"architecture.png is {width}x{height}, expected 2000x1400")
 
-    js = extract_script(html)
-    hit = ENTITY_RE.search(js)
-    if hit:
+    og = dict(OG_DIM.findall(html))
+    if og.get("width") != "2000" or og.get("height") != "1400":
+        fail(f"og:image dimensions {og} do not match architecture.png 2000x1400")
+
+    # html{} beats *{} — the reduce query must name the root scroller.
+    if not re.search(
+        r"@media\s*\(prefers-reduced-motion:reduce\)[^}]*html\s*\{[^}]*scroll-behavior\s*:\s*auto",
+        html,
+        flags=re.S,
+    ):
         fail(
-            "inline script still contains an HTML entity "
-            f"({hit.group(0)!r}) — this is the 949aee3 blank-page landmine"
+            "prefers-reduced-motion does not set html{scroll-behavior:auto} "
+            "(a *{} rule loses to html{scroll-behavior:smooth})"
         )
 
-    tmp = Path("/tmp/network-obs-console.js")
-    tmp.write_text(js, encoding="utf-8")
-    check = subprocess.run(["node", "--check", str(tmp)], capture_output=True, text=True)
-    if check.returncode != 0:
-        fail("inline script failed node --check:\n" + (check.stderr or check.stdout))
+    script = extract_script(html)
+    if not script.strip():
+        fail("inline script is empty")
+    leaked = ENTITY_IN_SCRIPT.findall(script)
+    if leaked:
+        fail(
+            "HTML entities inside <script> (this collapsed esc() and blanked Pages): "
+            + ", ".join(sorted(set(leaked)))
+        )
 
-    print("OK: required files, PNG 2000x1400, noscript, script parses")
+    with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8", delete=False) as tmp:
+        tmp.write(script)
+        tmp_path = tmp.name
+    try:
+        proc = subprocess.run(
+            ["node", "--check", tmp_path],
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        fail("node is required for syntax check (node --check)")
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout).strip()
+        fail("console script failed node --check\n" + detail)
+
+    print("ok: files, png 2000x1400, boot ids, reduced-motion, script parses")
 
 
 if __name__ == "__main__":

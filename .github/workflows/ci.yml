@@ -1,14 +1,12 @@
-name: CI
-
+name: ci
 on:
   push:
     branches: [main]
   pull_request:
-
 jobs:
-  smoke:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Console smoke check
+      - name: Smoke-check Pages console
         run: python3 scripts/check.py

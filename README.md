@@ -64,11 +64,18 @@ Try it on the live page:
 | `architecture.png` | Open Graph / Twitter share card, **2000×1400** RGB PNG. |
 | `ARCHITECTURE.md` | The pattern, written down. |
 | `CHANGELOG.md` | What shipped. |
+| `scripts/check.py` | Smoke check for the console script, PNG/OG size, and boot ids. |
+| `GAP_ANALYSIS.md` | Ranked gaps from the repo scan. |
 | `LICENSE` | MIT. |
 
 A commit to `main` is the release. GitHub Pages serves `main` / root.
 
 ## Edit and preview
+
+```bash
+python3 -m http.server 8080
+python3 scripts/check.py
+```
 
 All tokens live on `:root` in `index.html`. Dark theme only. Honor `prefers-reduced-motion`. Keep it generic — no client names.
 
