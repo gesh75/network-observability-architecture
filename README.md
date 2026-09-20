@@ -79,6 +79,8 @@ python3 scripts/check.py
 
 All tokens live on `:root` in `index.html`. Dark theme only. Honor `prefers-reduced-motion`. Keep it generic — no client names.
 
+Sanity-check before push: `python3 scripts/check.py` (also runs on every PR).
+
 Social-card tags use **absolute** `https://gesh75.github.io/...` URLs. After replacing `architecture.png`, keep `og:image:width` / `height` in sync (2000×1400) and re-scrape LinkedIn/X if the Featured card is stale.
 
 ## Add to LinkedIn

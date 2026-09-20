@@ -162,6 +162,11 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
   </div>
   <nav class="mob" id="mob" aria-label="Mobile"></nav>
 </header>
+<noscript>
+  <div class="wrap">
+    <p class="lede">The interactive console needs JavaScript. The pattern is in <a href="ARCHITECTURE.md">ARCHITECTURE.md</a>.</p>
+  </div>
+</noscript>
 <div class="wrap" id="view"></div>
 <footer class="site">
   <div class="foot">
@@ -265,7 +270,8 @@ footer.site{border-top:1px solid var(--line);padding:22px 20px 40px}
 
   function driftOf(d){
     const f=[];
-    if(d.intendedOs!==d.actualOs) f.push(["OS", d.intendedOs, d.actualOs]);
+    const intendedOs = (state.writeDiscovery && d.id==="r2") ? d.actualOs : d.intendedOs;
+    if(intendedOs!==d.actualOs) f.push(["OS", intendedOs, d.actualOs]);
     if(d.intendedAsn!==d.actualAsn) f.push(["ASN", d.intendedAsn, d.actualAsn]);
     if(d.intendedCircuits!==d.actualCircuits) f.push(["Circuits", String(d.intendedCircuits), String(d.actualCircuits)]);
     return f;
