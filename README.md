@@ -26,6 +26,27 @@ How to build visibility that can be handed over:
 
 Collectors do **not** run on production network devices.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph SRC["Sources"]
+      S1["Vendor APIs"]; S2["Syslog"]; S3["gNMI / OpenConfig"]; S4["IPFIX / sFlow"]; S5["WAN synthetics"]
+    end
+    subgraph COL["Collect (org-owned hosts)"]
+      C1["Grafana Alloy (OTLP)"]; C2["Vector (syslog)"]; C3["API collectors<br/>+ freshness SLO"]
+    end
+    subgraph STO["Store"]
+      NB[("NetBox<br/>intent")]; M[("InfluxDB / Mimir<br/>metrics")]; L[("Loki<br/>logs")]; T[("Tempo<br/>job traces")]
+    end
+    subgraph ACT["Visualize & Act"]
+      G["Grafana as code"]; DS{"Dual-signal gate"}; AI["Read-only AI<br/>control plane"]; H["Human-approved plan<br/>check-mode → canary → rollback"]
+    end
+    SRC --> COL --> M & L & T
+    NB -. "drift = intent vs actual<br/>(discovery never writes)" .- M
+    M & L & T & NB --> G --> DS --> AI --> H
+```
+
 ## v2.0 — shipped 2026-08-29
 
 Same five-stage pipeline and three rules. The fabric is current, and the public page is an **interactive console** (still one HTML file).
